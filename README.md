@@ -30,13 +30,19 @@
 
 ## แหล่งข้อมูล
 
-| Source | หน่วยงาน | ข้อมูล | Format |
-|---|---|---|---|
-| `arms_accident` API | กรมทางหลวงชนบท | อุบัติเหตุบนทางหลวงชนบท, ค่อนข้าง real-time | JSON |
-| `exat-accident` API | การทางพิเศษแห่งประเทศไทย | อุบัติเหตุบนทางด่วน, อัปเดตรายเดือน | JSON |
+ตรวจสอบจริงแล้ว (curl) ว่าเข้าถึงได้และมีพิกัดครบ — รายละเอียดเต็มดูที่
+[`docs/api_notes.md`](docs/api_notes.md)
+
+| Source | หน่วยงาน | ดึงยังไง | จำนวน record | มีพิกัดไหม |
+|---|---|---|---|---|
+| ARMS accident data | กรมทางหลวงชนบท | โหลดไฟล์ตรง (1 JSON + 3 CSV แยกปีงบประมาณ) จาก `dataportal.drr.go.th` | ~3,083 record (FY2565-2568) | ✅ ครบทุก record |
+| EXAT accident data | การทางพิเศษแห่งประเทศไทย | REST API `exat-man.web.app/api/EXAT_Accident/{ปี พ.ศ.}/{เดือน}` | ตามจำนวนอุบัติเหตุจริงต่อเดือน | ❌ มีแต่ชื่อทางด่วนเป็น text ต้อง geocode เอง |
 
 ทั้งคู่เผยแพร่ผ่าน [datagov.mot.go.th](https://datagov.mot.go.th) (Open Data ของ
 กระทรวงคมนาคม) license เป็น "Open Data Common" เข้าถึงได้อิสระ ไม่มีข้อจำกัด
+
+ข้อมูล `accident-summary-month` (สถิติสรุปรายเดือน) สำรวจแล้วแต่**ไม่ใช้ในโปรเจกต์นี้**
+เพราะไม่มีตำแหน่งจุดเกิดเหตุ ใช้ทำ blackspot ไม่ได้
 
 ---
 
