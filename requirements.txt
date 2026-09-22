@@ -7,3 +7,6 @@ pytest==8.3.3
 # Issue 02: ใช้ใน scripts/api_probe.py (Python 3.13 จาก python.org ไม่ผูก
 # system cert store เหมือน curl ต้องใช้ requests ที่พก certifi มาเอง)
 requests==2.34.2
+
+# Issue 03: ใช้ทดสอบ connect เข้า Postgres จาก host (จะใช้ต่อใน extract/loader.py ของ Issue 05)
+psycopg2-binary==2.9.9
