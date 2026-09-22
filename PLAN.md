@@ -64,7 +64,7 @@ Dependency คร่าวๆ: `01 → 02 → 03 → 04 → 05 → 06 → 07 →
 
 ---
 
-## Issue 02 — สำรวจ/ทดสอบ API จริง (ARMS, EXAT)
+## Issue 02 — สำรวจ/ทดสอบ API จริง (ARMS, EXAT) ✅ เสร็จแล้ว
 
 **เป้าหมาย:** เข้าใจ response จริงของทั้งสอง API ก่อนเขียนโค้ด (field, pagination, auth, rate limit, edge case)
 
@@ -81,6 +81,20 @@ Dependency คร่าวๆ: `01 → 02 → 03 → 04 → 05 → 06 → 07 →
 4. เขียน prototype script สั้นๆ (`scripts/api_probe.py`) ดึงข้อมูลจริงมาดู ไม่ต้อง production-grade
 
 **Definition of Done:** มี `docs/api_notes.md` ที่ครบถ้วนพอจะเขียน extract script ได้โดยไม่ต้องเดา, มี sample response เก็บไว้อ้างอิง
+
+### สิ่งที่เจอจริง (สำคัญ กระทบ Issue 04-09 ด้านล่าง — รายละเอียดเต็มดูที่ `docs/api_notes.md`)
+
+- **ARMS ไม่ใช่ 1 resource แต่มี 4 resource แยกกัน:** `accident.json` (~209 record, ปีงบ 2565) +
+  `2566_accident_drr.csv` (1,090) + `2567_accident_drr.csv` (970) + `2568_accident_drr.csv` (814)
+  รวม ~3,083 record มีพิกัดครบทุกตัว **แต่ JSON กับ CSV เป็นคนละ schema กัน**
+  (field ชื่อ, ตัวพิมพ์ใหญ่/เล็ก, format วันที่ต่างกันหมด)
+- **EXAT เป็น REST API จริง** (`/api/EXAT_Accident/{ปี พ.ศ.}/{เดือน}`) แต่ **ไม่มีพิกัดเลย**
+  มีแค่ `expw_step` เป็นชื่อทางด่วน/ช่วงทางเป็น text — เช็คครบทุก endpoint ของ EXAT แล้ว
+  (`EXAT_Crash`, `EXAT_Plaza`, `EXAT_TrafficStatByPlaza/ByCar` ฯลฯ) ไม่มีตัวไหนให้พิกัดมาเลย
+- **ตัดสินใจแล้ว:** ฝั่ง EXAT จะ **geocode เอง** ด้วย manual lookup table (`expw_step` → พิกัดตัวแทน
+  ของทางด่วนสายนั้น) ไม่ตัด EXAT ออกจาก pipeline แต่ต้องยอมรับว่า cluster ฝั่งนี้จะหยาบกว่า ARMS มาก
+- **`accident-summary-month`** เป็นแค่สถิติสรุปรายเดือน ไม่มีตำแหน่งจุดเกิดเหตุ → **ตัดออกจาก
+  pipeline หลัก** ไม่ใช้ทำ blackspot (ใช้ validate ตัวเลขได้เท่านั้นถ้าต้องการ)
 
 ---
 
@@ -103,17 +117,27 @@ Dependency คร่าวๆ: `01 → 02 → 03 → 04 → 05 → 06 → 07 →
 
 ## Issue 04 — Extract scripts (ARMS, EXAT)
 
-**เป้าหมาย:** ได้ Python script ที่ดึงข้อมูลจากทั้งสอง API แล้วเซฟเป็น JSON ดิบ พร้อม retry logic
+**เป้าหมาย:** ได้ Python script ที่ดึงข้อมูลจากทั้งสอง source แล้วเซฟเป็นไฟล์ดิบ พร้อม retry logic
 
 **ขั้นตอน:**
-1. สร้าง `extract/arms_extractor.py` และ `extract/exat_extractor.py` (หรือใช้ base class ร่วมถ้าโครงสร้างคล้ายกันมากพอ — อย่า over-abstract ถ้าไม่จำเป็น)
-2. ใช้ `requests` + retry (เช่น `tenacity` หรือ manual retry with backoff) รองรับกรณี API รัฐ timeout/500
-3. Handle pagination ตามที่บันทึกไว้ใน issue 02 จนกว่าจะดึงข้อมูลครบ
-4. เซฟผลลัพธ์เป็นไฟล์ JSON ดิบ พร้อม timestamp ในชื่อไฟล์ เช่น `data/raw/arms_20260101.json` (โฟลเดอร์นี้อยู่ใน `.gitignore` ไม่ commit ข้อมูลจริง)
-5. เขียน unit test เบื้องต้น (mock HTTP response) เช็ค parsing/retry logic ทำงานถูกต้อง — ใช้ `pytest` + `responses`/`unittest.mock`
-6. รัน script จริงกับ API จริงหนึ่งรอบ ยืนยันว่าได้ข้อมูลจริงและไฟล์ JSON ถูกต้อง
+1. สร้าง `extract/arms_extractor.py` และ `extract/exat_extractor.py` (แยกไฟล์ชัดเจน เพราะพฤติกรรม
+   การดึงต่างกันมาก ไม่ควรฝืนใช้ base class ร่วม)
+2. **ARMS:** ไม่มี pagination — ดึงทีละไฟล์จากทั้ง 4 resource URL ที่บันทึกไว้ใน `docs/api_notes.md`
+   (1 JSON + 3 CSV แยกปีงบประมาณ 2565/2566/2567/2568) เซฟแยกไฟล์ตาม resource เดิม
+   อย่ารวมเป็นไฟล์เดียวตอน extract (รวม/map schema ค่อยทำใน Issue 07 ฝั่ง dbt)
+3. **EXAT:** ไม่มี pagination แบบ page number — endpoint เป็น `/{ปี พ.ศ.}/{เดือน}` ต้อง **loop ปี × เดือน (1-12)**
+   จนกว่าจะได้ครบทุกเดือนที่มีข้อมูล (เดือนไหนไม่มีข้อมูลน่าจะได้ result ว่าง ไม่ error — ต้อง handle เคสนี้)
+   ดึงเฉพาะ `EXAT_Accident` endpoint พอ (ไม่ต้องดึง `EXAT_Crash`/`EXAT_TrafficStat*` เพราะไม่เกี่ยวกับ blackspot)
+   ก่อนเขียน loop เต็ม ควรลองไล่ปีอื่นนอกจาก 2564 ดูก่อนว่า API accept ปีไหนบ้าง (ยังไม่เคยเช็ค)
+4. ใช้ `requests` (ติดตั้งแล้วใน `requirements.txt` จาก Issue 02) + retry (เช่น `tenacity` หรือ manual
+   retry with backoff) รองรับกรณี API รัฐ timeout/500 — **หมายเหตุ:** ถ้า dev บนเครื่องที่ Python
+   ไม่ผูก system cert store (เจอปัญหานี้ตอนทำ `api_probe.py`) ต้องใช้ `requests` ไม่ใช่ `urllib` ตรงๆ
+5. เซฟผลลัพธ์เป็นไฟล์ดิบ พร้อม timestamp ในชื่อไฟล์ เช่น `data/raw/arms_2568_20260101.csv`,
+   `data/raw/exat_2564_01_20260101.json` (โฟลเดอร์นี้อยู่ใน `.gitignore` ไม่ commit ข้อมูลจริง)
+6. เขียน unit test เบื้องต้น (mock HTTP response) เช็ค parsing/retry logic ทำงานถูกต้อง — ใช้ `pytest` + `responses`/`unittest.mock`
+7. รัน script จริงกับ API จริงหนึ่งรอบ ยืนยันว่าได้ข้อมูลจริงและไฟล์ถูกต้อง (เทียบจำนวน record กับที่บันทึกไว้ใน Issue 02)
 
-**Definition of Done:** รัน `python extract/arms_extractor.py` และ `exat_extractor.py` แล้วได้ไฟล์ JSON ดิบจริง, มี test ผ่าน, มี retry ที่ทดสอบแล้วว่าทำงาน
+**Definition of Done:** รัน `python extract/arms_extractor.py` และ `exat_extractor.py` แล้วได้ไฟล์ดิบจริงครบทุก resource/เดือน, มี test ผ่าน, มี retry ที่ทดสอบแล้วว่าทำงาน
 
 ---
 
@@ -123,8 +147,13 @@ Dependency คร่าวๆ: `01 → 02 → 03 → 04 → 05 → 06 → 07 →
 
 **ขั้นตอน:**
 1. ออกแบบ schema ตาราง raw: เก็บเป็น `JSONB` column (เช่น `payload jsonb`, `source_file text`, `loaded_at timestamptz`, `id serial`) — ให้ยืดหยุ่นรองรับ schema เปลี่ยนแปลงจาก API ได้
+   เพิ่ม column `source_format` (`json`/`csv`) และ `source_year` ด้วย เพราะ ARMS มี 2 schema ปนกัน
+   ในตารางเดียว (JSON export กับ CSV export field ไม่เหมือนกัน ตามที่พบใน Issue 02) การมี column
+   นี้ช่วย debug ย้อนหลังว่า record ไหนมาจาก resource ไหน โดยไม่ต้องเดาจากเนื้อหา JSONB เอง
 2. เขียน SQL migration หรือ `CREATE TABLE IF NOT EXISTS` script ใน `dbt/` (เป็น seed/pre-hook) หรือแยกเป็น `scripts/init_db.sql`
-3. เขียน `extract/loader.py` อ่านไฟล์ JSON ดิบ → insert เข้า `raw_arms`/`raw_exat` ผ่าน `psycopg2`/`sqlalchemy`
+3. เขียน `extract/loader.py` อ่านไฟล์ดิบ (รองรับทั้ง JSON และ CSV จาก ARMS, JSON จาก EXAT) →
+   insert เข้า `raw_arms`/`raw_exat` ผ่าน `psycopg2`/`sqlalchemy` (CSV ต้อง parse เป็น dict ก่อนแปลง
+   เป็น JSONB เก็บ เพื่อให้ทั้งตาราง query แบบ JSONB ได้เหมือนกันหมด)
 4. ทำ idempotency: ถ้ารันซ้ำไฟล์เดิมไม่ควร insert ซ้ำ (เช่น unique constraint บน `source_file` หรือ upsert logic)
 5. Test: รัน loader กับไฟล์ sample จาก issue 02/04 แล้ว query ยืนยันข้อมูลอยู่ใน Postgres ถูกต้อง
 6. เขียน unit test สำหรับ loader (ใช้ test database หรือ testcontainers ถ้าสะดวก)
@@ -152,19 +181,38 @@ Dependency คร่าวๆ: `01 → 02 → 03 → 04 → 05 → 06 → 07 →
 
 ## Issue 07 — dbt project setup + staging layer
 
-**เป้าหมาย:** ตั้ง dbt project เชื่อม Postgres ได้ และมี `stg_accidents` schema เดียวกันจากทั้งสอง source
+**เป้าหมาย:** ตั้ง dbt project เชื่อม Postgres ได้ และมี `stg_accidents` schema เดียวกันจากทั้ง 3 schema ต้นทาง
+
+⚠️ **ปรับจากแผนเดิม:** ตอนแรกคิดว่ามีแค่ 2 source (ARMS, EXAT) แต่ ARMS เองมี 2 schema ย่อยปนกัน
+(JSON export กับ CSV export field/format ไม่เหมือนกัน) รวมเป็น **3 schema ที่ต้อง map เข้าด้วยกัน**
+และฝั่ง EXAT ไม่มีพิกัดมาเอง ต้อง geocode ก่อนถึงจะเข้า staging ได้
 
 **ขั้นตอน:**
 1. `dbt init` ใน `dbt/`, ตั้งค่า `profiles.yml` ชี้ไป Postgres ใน docker-compose (ใช้ env var ผ่าน `env_var()` ไม่ hardcode credential)
 2. `dbt debug` ยืนยัน connection ผ่าน
 3. เขียน dbt source definition ชี้ไปตาราง `raw_arms`, `raw_exat`
-4. เขียน model `stg_arms.sql`, `stg_exat.sql`: แตก JSONB เป็น column ปกติ (`->>` operator), cast type ให้ถูก (lat/lng เป็น numeric, วันที่เป็น timestamp)
-5. เขียน model `stg_accidents.sql` (union ทั้งสอง): map field name ให้ตรงกันตามที่บันทึกไว้ใน `docs/api_notes.md`, เพิ่ม column `source` บอกว่าแถวนี้มาจาก arms หรือ exat
-6. กรองพิกัดผิดปกตินอกขอบเขตประเทศไทย (lat ~5.6-20.5, lng ~97.3-105.6) ใน model นี้
-7. `dbt run` แล้ว query ตรวจผลลัพธ์ใน Postgres
-8. เขียน `dbt docs` description สั้นๆ ให้แต่ละ model/column สำคัญ
+4. สร้าง **seed** `dbt/seeds/expw_step_coordinates.csv` — map ชื่อ `expw_step` ของ EXAT (เช่น
+   "ศรีรัช", "ฉลองรัช", "เฉลิมมหานคร" ฯลฯ ดูรายชื่อที่เจอจริงได้จาก `docs/api_samples/`) ไปยัง
+   พิกัดตัวแทนของทางด่วนสายนั้น (หาจาก Google Maps เอง คลิกจุดกึ่งกลางเส้นทางโดยประมาณ)
+   บันทึกไว้ใน `docs/` ด้วยว่าใช้เกณฑ์อะไรเลือกจุด เพื่อให้ตรวจสอบย้อนหลังได้
+5. เขียน model แยกตาม schema ต้นทาง:
+   - `stg_arms_json.sql` — แตก JSONB ของ `raw_arms` เฉพาะแถวที่ `source_format = 'json'`,
+     cast type field ตัวพิมพ์ใหญ่ (`LATITUDE`, `DEATH`, ...) ตามที่บันทึกไว้ใน `docs/api_notes.md`
+   - `stg_arms_csv.sql` — แตก JSONB เฉพาะแถวที่ `source_format = 'csv'`, cast type field ตัวพิมพ์เล็ก
+     (`latitude`, `dead_total`, ...) และ parse วันที่ format `D/M/YYYY` ให้เป็น date จริง
+   - `stg_exat.sql` — แตก JSONB ของ `raw_exat`, join กับ seed `expw_step_coordinates` เพื่อเติม
+     lat/lng ให้แต่ละแถวจาก `expw_step`
+6. เขียน model `stg_accidents.sql` (union ทั้ง 3): map field name ให้ตรงกัน — โดยเฉพาะ column
+   ความรุนแรงที่ความละเอียดไม่เท่ากัน (ARMS-CSV แยกชาย/หญิง/เด็ก, ARMS-JSON มีแค่ตัวเลขรวม,
+   EXAT แยกแค่ชาย/หญิงไม่มีเด็ก) ให้ normalize เหลือแค่ `dead_total`, `injured_severe_total`,
+   `injured_light_total` ที่ทุก schema มีร่วมกัน, เพิ่ม column `source` (`arms_json`/`arms_csv`/`exat`)
+   และ `is_geocoded` (true สำหรับ EXAT เพื่อสื่อสารว่าพิกัดนี้เป็นค่าประมาณ ไม่ใช่จุดเกิดเหตุจริง)
+7. กรองพิกัดผิดปกตินอกขอบเขตประเทศไทย (lat ~5.6-20.5, lng ~97.3-105.6) ใน model นี้
+8. `dbt run` แล้ว query ตรวจผลลัพธ์ใน Postgres
+9. เขียน `dbt docs` description สั้นๆ ให้แต่ละ model/column สำคัญ
 
-**Definition of Done:** `dbt run` ผ่าน, มี `stg_accidents` ที่รวมสอง source เป็น schema เดียวกัน ข้อมูลพิกัดอยู่ในขอบเขตไทยเท่านั้น
+**Definition of Done:** `dbt run` ผ่าน, มี `stg_accidents` ที่รวมทั้ง 3 schema ต้นทางเป็นแบบเดียวกัน
+ข้อมูลพิกัดอยู่ในขอบเขตไทยเท่านั้น (รวมถึงพิกัด geocode ของ EXAT ด้วย)
 
 ---
 
@@ -181,9 +229,14 @@ Dependency คร่าวๆ: `01 → 02 → 03 → 04 → 05 → 06 → 07 →
 3. เขียน model `int_accident_clusters.sql`: แปลง lat/lng เป็น geometry point, รัน `ST_ClusterDBSCAN(eps, minpoints)` (eps ตั้งเทียบเป็นองศาหรือแปลงหน่วยเป็นเมตรด้วย `ST_Transform` ไป SRID ที่เหมาะกับไทย เช่น UTM 47N/48N) กำหนดรัศมี 200-500 เมตรตามที่ระบุไว้
 4. ทดสอบด้วยข้อมูลจริง เช็คว่า cluster ที่ได้สมเหตุสมผล (plot คร่าวๆ ด้วย Python/QGIS ดูตำแหน่ง)
 5. ปรับ `eps`/`minpoints` จนได้ผลลัพธ์ที่ดูสมเหตุสมผล (ไม่ cluster ใหญ่เกินไปจนไม่มีความหมาย หรือเล็กเกินไปจนไม่มี cluster ไหนเกิน 1 จุด)
-6. บันทึกเหตุผลการเลือกค่า parameter ไว้ใน comment ของ model หรือ `docs/`
+6. ⚠️ **พิจารณาแยก parameter ตาม `source`:** เพราะพิกัดฝั่ง `exat` เป็นพิกัด geocode ประมาณเอา (จาก
+   Issue 07) ความละเอียดหยาบกว่าพิกัดจริงของ `arms_json`/`arms_csv` มาก ถ้าใช้ `eps` เดียวกันหมด
+   จุดอุบัติเหตุ EXAT หลายจุดจะถูกจับรวมเป็น cluster เดียวทั้งที่ไม่เกี่ยวข้องกันจริง (เพราะอ้างอิง
+   จากพิกัดทางด่วนสายเดียวกัน) — อาจต้อง cluster แยก query ตาม source แล้ว union ผลลัพธ์ทีหลัง
+   หรือยอมรับว่า cluster ฝั่ง EXAT สื่อความหมายระดับ "ทางด่วนสายไหน" ไม่ใช่ "จุดไหน"
+7. บันทึกเหตุผลการเลือกค่า parameter ไว้ใน comment ของ model หรือ `docs/`
 
-**Definition of Done:** มี model ที่ output `cluster_id` ต่อแถว, ทดสอบแล้วผลลัพธ์สมเหตุสมผลเมื่อเทียบกับแผนที่จริง
+**Definition of Done:** มี model ที่ output `cluster_id` ต่อแถว, ทดสอบแล้วผลลัพธ์สมเหตุสมผลเมื่อเทียบกับแผนที่จริง, มีคำอธิบายชัดเจนว่า cluster ฝั่ง EXAT มีข้อจำกัดเรื่องความละเอียดต่างจาก ARMS
 
 ---
 
@@ -196,9 +249,11 @@ Dependency คร่าวๆ: `01 → 02 → 03 → 04 → 05 → 06 → 07 →
 2. เขียน model `mart_blackspot_severity.sql`: `GROUP BY cluster_id` จาก `int_accident_clusters`, คำนวณ:
    - จำนวนอุบัติเหตุในกลุ่ม
    - centroid (lat/lng เฉลี่ยหรือ `ST_Centroid`) สำหรับปักหมุดบนแผนที่
-   - severity score ตามสูตรที่ออกแบบ
+   - severity score ตามสูตรที่ออกแบบ (ใช้ column ที่ normalize แล้วจาก Issue 07 คือ `dead_total`,
+     `injured_severe_total`, `injured_light_total` เพราะแต่ละ source นับความรุนแรงละเอียดไม่เท่ากัน)
    - ช่วงวันที่ min/max ที่มีข้อมูล
-   - breakdown ตาม source (arms/exat) ถ้ามีประโยชน์
+   - breakdown ตาม source (`arms_json`/`arms_csv`/`exat`), รวม column `is_geocoded` เพื่อให้ตอน
+     publish (Issue 11) แสดงผลต่างกันได้ระหว่างจุดที่มีพิกัดจริงกับจุดที่ประมาณเอา
 3. เรียง rank ตาม severity score, เผื่อ column `rank` ไว้ใช้ตอนแสดงผล top-N blackspot
 4. `dbt run`, ตรวจผลลัพธ์ query ดูว่า top blackspot ที่ได้สมเหตุสมผล
 5. เขียน `dbt docs` description ให้ mart model นี้ครบ (จะใช้ตอน generate docs)
@@ -234,6 +289,9 @@ Dependency คร่าวๆ: `01 → 02 → 03 → 04 → 05 → 06 → 07 →
 2. เขียน `scripts/generate_map.py`: query `mart_blackspot_severity` จาก Postgres → สร้าง Folium map:
    - Heatmap layer จากตำแหน่ง blackspot ถ่วงน้ำหนักด้วย severity score
    - Marker layer คลิกดู popup รายละเอียด (จำนวนครั้ง, severity score, ช่วงวันที่, source)
+   - ⚠️ ใช้ column `is_geocoded` (จาก Issue 07/09) แยกสไตล์ marker ระหว่างจุดพิกัดจริง (ARMS) กับ
+     จุดพิกัด geocode ประมาณเอา (EXAT) เช่น สีต่างกันหรือใส่คำเตือนใน popup — กันคนดูเข้าใจผิดว่า
+     ทุกจุดแม่นยำเท่ากัน
    - Layer control ให้สลับ heatmap/marker ได้
 3. Export เป็น `docs/index.html` (หรือ path ที่ตรงกับ GitHub Pages source)
 4. รัน script ด้วยข้อมูลจริง เปิดไฟล์ HTML ในเบราว์เซอร์ตรวจสอบว่าแสดงผลถูกต้อง ใช้งานได้ (zoom, click popup)
