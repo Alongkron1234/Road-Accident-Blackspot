@@ -1,29 +1,30 @@
 # Road Accident Blackspot Pipeline
 
-โปรเจกต์ ELT pipeline อัตโนมัติที่ดึงข้อมูลอุบัติเหตุถนนจาก Open Data ของหน่วยงานราชการไทย
-มารวม, clean, จัดกลุ่มจุดที่เกิดอุบัติเหตุซ้ำๆ ("blackspot") แล้วเผยแพร่เป็นแผนที่
-interactive สาธารณะ — ใครก็เข้าดูได้ ไม่ต้อง login
+โปรเจกต์นี้ดึงข้อมูลอุบัติเหตุบนท้องถนนจาก Open Data ของหน่วยงานราชการไทย เอามารวม
+เอามา clean แล้วหาว่าจุดไหนเกิดอุบัติเหตุซ้ำๆ บ่อยๆ (เรียกว่า "blackspot") จากนั้นก็ทำเป็น
+แผนที่ interactive ให้ใครก็เข้าดูได้เลยโดยไม่ต้อง login ทั้งกระบวนการรันอัตโนมัติทุกวัน
 
-> **สถานะ:** กำลังพัฒนา ดูแผนงานแบบละเอียดเป็นราย Issue ได้ที่ [PLAN.md](PLAN.md)
+
 
 ---
 
-## ปัญหาที่แก้
+## ทำไมถึงทำโปรเจกต์นี้
 
-ข้อมูลอุบัติเหตุถนนของไทยกระจายอยู่หลายหน่วยงาน แต่ละที่เผยแพร่คนละ format ไม่มีใคร
-เอามารวมแล้ววิเคราะห์อย่างเป็นระบบว่า *จุดไหนเกิดอุบัติเหตุซ้ำๆ* ทั้งที่เป็นข้อมูลที่มี
-ประโยชน์จริงต่อทั้งคนขับรถและหน่วยงานวางแผนความปลอดภัยถนน
+ข้อมูลอุบัติเหตุถนนบ้านเรากระจัดกระจายอยู่คนละหน่วยงาน แต่ละที่ก็เผยแพร่คนละ format
+ไม่มีใครเอามารวมกันแล้วดูอย่างจริงจังว่า *จุดไหนที่เกิดอุบัติเหตุซ้ำแล้วซ้ำอีก* ทั้งที่
+ข้อมูลแบบนี้มีประโยชน์มากทั้งกับคนขับรถทั่วไปและหน่วยงานที่ต้องวางแผนความปลอดภัยถนน
 
-## โปรเจกต์นี้ทำอะไรบ้าง
+## โดยสรุปโปรเจกต์นี้ทำอะไร
 
-1. ดึงข้อมูลอุบัติเหตุทุกวันจาก Open Data API ของหน่วยงานราชการ 2 แห่ง
-2. โหลดข้อมูลดิบเข้า PostgreSQL ก่อน โดยยังไม่แปลงอะไร (ดูเหตุผลที่หัวข้อ [ทำไมถึงใช้ ELT](#ทำไมถึงใช้-elt))
-3. แปลงข้อมูลในตัว database เองด้วย dbt: รวม schema ให้เป็นแบบเดียวกัน → จัดกลุ่มจุดที่
-   เกิดอุบัติเหตุซ้ำใกล้กัน (DBSCAN) → คำนวณ severity score ต่อกลุ่ม
-4. คุมคุณภาพข้อมูลด้วย dbt tests ก่อนปล่อยไปถึง output
-5. Generate แผนที่ Folium แบบ live แล้ว publish ขึ้น GitHub Pages อัตโนมัติ
+1. ไปดึงข้อมูลอุบัติเหตุจาก API ของหน่วยงานราชการ 2 แห่งทุกวัน
+2. เก็บข้อมูลดิบเข้า PostgreSQL ก่อนเลย ยังไม่แตะไม่แปลงอะไรทั้งนั้น (อธิบายเหตุผลไว้ที่
+   หัวข้อ [ทำไมถึงใช้ ELT](#ทำไมถึงใช้-elt))
+3. ค่อยมาแปลงข้อมูลทีหลังด้วย dbt ตรงๆ ใน database เลย: รวม schema ของสอง source ให้
+   เหมือนกัน → จัดกลุ่มจุดที่เกิดอุบัติเหตุซ้ำใกล้ๆ กัน (DBSCAN) → คิด severity score
+   ของแต่ละกลุ่ม
+4. ก่อนปล่อยข้อมูลออกไปให้ dbt tests เช็คคุณภาพก่อน ถ้ามีอะไรผิดปกติจะไม่ปล่อยผ่าน
+5. generate แผนที่ด้วย Folium แล้ว publish ขึ้น GitHub Pages ให้เองอัตโนมัติ
 
-**แผนที่ live:** _(จะใส่ลิงก์เมื่อทำ Issue 11 เสร็จ)_
 
 ---
 
@@ -31,15 +32,15 @@ interactive สาธารณะ — ใครก็เข้าดูได้
 
 | Source | หน่วยงาน | ข้อมูล | Format |
 |---|---|---|---|
-| `arms_accident` API | กรมทางหลวงชนบท | อุบัติเหตุบนทางหลวงชนบท, real-time | JSON |
-| `exat-accident` API | การทางพิเศษแห่งประเทศไทย | อุบัติเหตุบนทางด่วน, รายเดือน | JSON |
+| `arms_accident` API | กรมทางหลวงชนบท | อุบัติเหตุบนทางหลวงชนบท, ค่อนข้าง real-time | JSON |
+| `exat-accident` API | การทางพิเศษแห่งประเทศไทย | อุบัติเหตุบนทางด่วน, อัปเดตรายเดือน | JSON |
 
-ทั้งสอง endpoint เผยแพร่ผ่าน [datagov.mot.go.th](https://datagov.mot.go.th)
-(Open Data กระทรวงคมนาคม) license "Open Data Common" เข้าถึงได้ไม่จำกัด
+ทั้งคู่เผยแพร่ผ่าน [datagov.mot.go.th](https://datagov.mot.go.th) (Open Data ของ
+กระทรวงคมนาคม) license เป็น "Open Data Common" เข้าถึงได้อิสระ ไม่มีข้อจำกัด
 
 ---
 
-## สถาปัตยกรรม
+## หน้าตา pipeline
 
 ```
  ┌──────────────┐        ┌──────────────┐
@@ -65,65 +66,64 @@ interactive สาธารณะ — ใครก็เข้าดูได้
                      ▼
           mart_blackspot_severity
                      │
-                     │  6. dbt test  (คุมคุณภาพ, fail แล้วหยุดทันที)
+                     │  6. dbt test  (เช็คคุณภาพ ถ้าพังหยุดตรงนี้เลย)
                      ▼
               7. Publish
            Folium map → GitHub Pages
               (public, static)
 ```
 
-ทั้ง 7 ขั้นตอนถูกควบคุมด้วย Airflow DAG เดียวที่รันอัตโนมัติทุกวัน
+ทุกขั้นตอนตั้งแต่ 1-7 ถูกควบคุมด้วย Airflow DAG เดียว รันให้เองอัตโนมัติทุกวัน
 
 ## ทำไมถึงใช้ ELT
 
-JSON ดิบจะถูกโหลดเข้า Postgres ก่อน (`raw_arms`, `raw_exat`) โดยยังไม่แปลงอะไรทั้งสิ้น
-logic การแปลงข้อมูลทั้งหมดอยู่ใน dbt ซึ่งทำงานอยู่ *ใน* database เอง ข้อดีคือถ้าวันหนึ่ง
-ต้องปรับรัศมี clustering หรือสูตร severity score ก็แค่รัน dbt ใหม่กับข้อมูลดิบที่ยังอยู่ใน
-Postgres — ไม่ต้องยิง API ของหน่วยงานราชการใหม่เพื่อ reprocess ข้อมูลย้อนหลัง
+ข้อมูลดิบจะถูกโหลดเข้า Postgres ก่อนเสมอ (`raw_arms`, `raw_exat`) แบบไม่ผ่านการแปลงใดๆ
+ส่วน logic การแปลงข้อมูลทั้งหมดไปอยู่ใน dbt ที่ทำงานอยู่ในตัว database เลย ข้อดีคือถ้าวัน
+ไหนอยากปรับรัศมี clustering หรือแก้สูตร severity score ก็แค่สั่งรัน dbt ใหม่กับข้อมูลดิบที่
+ยังอยู่ใน Postgres ครบทุกก้อน ไม่ต้องไปยิง API ของหน่วยงานราชการซ้ำเพื่อดึงข้อมูล
+ย้อนหลังมาใหม่
 
 ---
 
 ## Tech Stack
 
-- **Orchestration:** Apache Airflow — DAG รันทุกวันดูแลทั้ง pipeline
+- **Orchestration:** Apache Airflow — คุม DAG ที่รันทุกวัน
 - **Storage:** PostgreSQL (+ PostGIS) — เก็บทั้ง raw layer และ transformed layer
-- **Transform:** dbt — SQL-based transformation พร้อม data tests
+- **Transform:** dbt — เขียน transformation เป็น SQL พร้อม data tests ในตัว
 - **Geospatial clustering:** PostGIS `ST_ClusterDBSCAN` — จัดกลุ่มอุบัติเหตุที่เกิดซ้ำ
-  ในรัศมี ~200-500 เมตร
-- **Visualization:** Folium (Python, wrap Leaflet.js)
-- **Hosting:** GitHub Pages — เผยแพร่แบบ static, ฟรี, ไม่ต้องดูแล server
-- **Language:** Python (extract, orchestration) + SQL (dbt models)
+  ในรัศมีประมาณ 200-500 เมตร
+- **Visualization:** Folium (Python, ห่อ Leaflet.js อีกที)
+- **Hosting:** GitHub Pages — เผยแพร่เป็น static site ฟรี ไม่ต้องดูแล server เอง
+- **Language:** Python (ฝั่ง extract/orchestration) + SQL (ฝั่ง dbt models)
 
 ---
 
-## ขั้นตอนของ Pipeline
+## รายละเอียดแต่ละขั้นตอน
 
-1. **Extract** — Airflow DAG ยิง request ไปทั้ง 2 API พร้อมกันทุกวัน พร้อม retry logic
-   เผื่อ API รัฐไม่เสถียร เก็บ response เป็น JSON ดิบตามที่ได้มา
-2. **Load (raw layer)** — โยน JSON ดิบเข้า `raw_arms` / `raw_exat` เป็น JSONB ตรงๆ
-   ยังไม่แปลงข้อมูล ยังไม่รวม schema
+1. **Extract** — Airflow DAG ยิง request ไปทั้ง 2 API พร้อมกันทุกวัน มี retry logic
+   เผื่อ API หน่วยงานรัฐหลุดหรือล่มบ่อยๆ ได้ response มาก็เก็บเป็น JSON ดิบตามที่ได้
+2. **Load (raw layer)** — เอา JSON ดิบยัดเข้า `raw_arms` / `raw_exat` ตรงๆ เก็บเป็น
+   JSONB ยังไม่แปลง ยังไม่รวม schema อะไรทั้งนั้น
 3. **Transform (dbt)**
-   - *Staging* — แปลง JSON เป็น column ปกติ, กรองพิกัดที่อยู่นอกขอบเขตประเทศไทยออก,
-     map ทั้งสอง source ให้เป็น schema เดียวกันคือ `stg_accidents`
-   - *Clustering* — `ST_ClusterDBSCAN` จัดกลุ่มอุบัติเหตุที่เกิดซ้ำใกล้กันให้ได้ `cluster_id`
-   - *Mart* — aggregate ต่อ cluster คำนวณ severity score (ถ่วงน้ำหนักตามความรุนแรง +
-     ความถี่) → ได้ตาราง `mart_blackspot_severity`
-4. **Test (dbt tests)** — พิกัดต้องอยู่ในขอบเขตไทย, field สำคัญห้าม null, ห้ามมี record
-   ซ้ำ ถ้า test fail DAG จะไม่ปล่อยข้อมูลไปต่อจนถึงขั้น publish
-5. **Publish** — query จากตาราง mart → generate แผนที่ HTML ด้วย Folium →
-   commit/push ขึ้น GitHub Pages อัตโนมัติ เป็น task สุดท้ายของ DAG
+   - *Staging* — แกะ JSON ออกมาเป็น column ปกติ, กรองพิกัดที่หลุดออกนอกขอบเขต
+     ประเทศไทยทิ้ง, แล้ว map ทั้งสอง source ให้อยู่ใน schema เดียวกันคือ `stg_accidents`
+   - *Clustering* — ใช้ `ST_ClusterDBSCAN` จับกลุ่มอุบัติเหตุที่เกิดซ้ำอยู่ใกล้กัน ได้
+     `cluster_id` ออกมา
+   - *Mart* — aggregate ข้อมูลตาม cluster แล้วคำนวณ severity score (ถ่วงน้ำหนักตาม
+     ความรุนแรง + ความถี่ที่เกิด) ได้ตาราง `mart_blackspot_severity`
+4. **Test (dbt tests)** — เช็คว่าพิกัดต้องอยู่ในขอบเขตไทยจริง, field สำคัญห้าม null,
+   ห้ามมี record ซ้ำ ถ้า test ไหน fail DAG จะหยุดตรงนั้นเลย ไม่ปล่อยให้ไปถึงขั้น publish
+5. **Publish** — query ข้อมูลจากตาราง mart มา generate เป็นแผนที่ HTML ด้วย Folium
+   แล้ว commit/push ขึ้น GitHub Pages ให้เองอัตโนมัติ เป็น task สุดท้ายของ DAG
 
 ---
 
-## วิธี setup ใช้งาน local
-
-ขั้นตอน setup แบบละเอียดจะอยู่ที่ [`docs/local_setup.md`](docs/local_setup.md)
-หลังจากทำ Issue 03 (Docker Compose infra) เสร็จ คร่าวๆ จะเป็นแบบนี้:
+## อยาก setup รันเองที่เครื่อง
 
 ```bash
 git clone <repo-url>
 cd Road_Accident\ Blackspot_Pipeline
-cp .env.example .env   # ใส่ credential ให้ครบ
+cp .env.example .env   # ใส่ credential ให้ครบก่อน
 docker compose up -d
 ```
 
@@ -146,8 +146,8 @@ docker compose up -d
 
 ---
 
-## แผนงานถัดไป
+## อยากรู้ว่าต่อไปจะทำอะไร
 
-ดูรายละเอียดทั้งหมดแบ่งเป็น Issue/branch ได้ที่ [PLAN.md](PLAN.md) — ตั้งแต่
-scaffold repo ไปจนถึงผูก DAG แบบ end-to-end พร้อม feature เสริม (REST API,
-LINE bot แจ้งเตือนจุดเสี่ยง)
+ดูรายละเอียดทั้งหมดที่แบ่งเป็น Issue/branch ได้ที่ [PLAN.md](PLAN.md) — ไล่ตั้งแต่
+scaffold repo ไปจนถึงผูก DAG ให้รันครบวงจร บวกฟีเจอร์เสริมท้ายๆ อย่าง REST API
+กับ LINE bot แจ้งเตือนจุดเสี่ยง
