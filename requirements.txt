@@ -1,0 +1,5 @@
+# Issue 01: dependency พื้นฐานสำหรับ dev environment
+# Issue ถัดไปจะทยอยเพิ่ม (requests/tenacity ใน 04, psycopg2 ใน 05, dbt ใน 07, folium ใน 11 ฯลฯ)
+
+python-dotenv==1.0.1
+pytest==8.3.3
