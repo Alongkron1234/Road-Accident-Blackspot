@@ -1,13 +1,3 @@
-"""
-Issue 02 — prototype script ยืนยันว่าสิ่งที่บันทึกไว้ใน docs/api_notes.md ตรงกับของจริง
-
-รันแล้วข้อมูลจะถูกเซฟลง data/raw/api_probe/ (gitignore ไว้แล้ว, ไม่ทับ docs/api_samples/
-ซึ่งเป็นตัวอย่างอ้างอิงที่ commit เข้า repo)
-
-Usage:
-    python scripts/api_probe.py
-"""
-
 import csv
 import io
 import json
