@@ -30,3 +30,6 @@ data/raw/
 .DS_Store
 .vscode/
 .idea/
+
+# Personal notes, not project documentation
+docs/learning_notes.md
