@@ -8,9 +8,22 @@ x-airflow-common:
     AIRFLOW__CORE__FERNET_KEY: ${AIRFLOW__CORE__FERNET_KEY}
     AIRFLOW__CORE__LOAD_EXAMPLES: "false"
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
+    PYTHONPATH: /opt/airflow
+    # ให้ extractor/loader ต่อ Postgres จากข้างใน docker network (คนละค่ากับที่ host ใช้:
+    # host ต่อผ่าน localhost:${POSTGRES_PORT} แต่ container ต่อผ่านชื่อ service "postgres" port 5432 ตรงๆ)
+    POSTGRES_HOST: postgres
+    POSTGRES_PORT: "5432"
+    POSTGRES_USER: ${POSTGRES_USER}
+    POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    WAREHOUSE_DB: ${WAREHOUSE_DB}
+    # ติดตั้ง dependency ที่ extract/*.py ต้องใช้ แต่ image apache/airflow ไม่มีมาให้
+    # หมายเหตุ: pip install ทุกครั้งที่ container start ช้าขึ้นนิดหน่อย เหมาะกับ local dev เท่านั้น
+    # ถ้าจะ production จริงควร build custom image แทน
+    _PIP_ADDITIONAL_REQUIREMENTS: "tenacity==9.0.0 requests==2.32.3 psycopg2-binary==2.9.9 python-dotenv==1.0.1"
   volumes:
     - ./airflow/dags:/opt/airflow/dags
     - ./airflow/logs:/opt/airflow/logs
+    - ./extract:/opt/airflow/extract
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on:
     postgres:
