@@ -36,7 +36,7 @@ def get_connection():
         password=os.environ["POSTGRES_PASSWORD"],
     )
 
-
+# ได้ list อุบัติเหตุ
 def parse_arms_records(raw: bytes, ext: str) -> list:
     if ext == "json":
         data = json.loads(raw)
