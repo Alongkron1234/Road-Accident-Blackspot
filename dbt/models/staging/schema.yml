@@ -1,0 +1,68 @@
+version: 2
+
+models:
+  - name: stg_arms_json
+    description: >
+      แกะ payload ของ raw_arms เฉพาะแถวที่มาจากไฟล์ JSON ต้นฉบับ (accident.json, ปีงบ 2565)
+      field ต้นฉบับเป็นตัวพิมพ์ใหญ่ทั้งหมด
+    columns:
+      - name: accident_id
+        description: primary key จาก field ID ของ ARMS (เฉพาะฝั่ง JSON)
+      - name: accident_datetime
+        description: วันเวลาที่เกิดอุบัติเหตุ (ISO datetime พร้อม timezone)
+      - name: latitude
+        description: ละติจูดจุดเกิดเหตุ (พิกัดจริง ไม่ใช่ geocode)
+      - name: longitude
+        description: ลองจิจูดจุดเกิดเหตุ (พิกัดจริง ไม่ใช่ geocode)
+      - name: dead_total
+        description: จำนวนผู้เสียชีวิต (field DEATH ของต้นฉบับ)
+      - name: injured_severe_total
+        description: จำนวนผู้บาดเจ็บสาหัส (field WOUNDEDSEVERE)
+      - name: injured_light_total
+        description: จำนวนผู้บาดเจ็บเล็กน้อย (field WOUNDEDLIGHT)
+
+  - name: stg_arms_csv
+    description: >
+      แกะ payload ของ raw_arms เฉพาะแถวที่มาจากไฟล์ CSV (ปีงบ 2566/2567/2568)
+      field ต้นฉบับเป็นตัวพิมพ์เล็ก, accident_date ต้นฉบับเป็น format D/M/YYYY
+    columns:
+      - name: accident_id
+        description: primary key จาก field id ของ ARMS (เฉพาะฝั่ง CSV)
+      - name: accident_date
+        description: วันที่เกิดอุบัติเหตุ (parse จาก format D/M/YYYY เป็น date จริง)
+      - name: dead_total
+        description: >
+          จำนวนผู้เสียชีวิตรวม (คำนวณเองจาก dead_men + dead_women + dead_child_men +
+          dead_child_women เพราะต้นฉบับแยกเป็น 4 column ไม่มีตัวเลขรวมมาให้แบบ JSON)
+
+  - name: stg_exat
+    description: >
+      แกะ payload ของ raw_exat แล้ว join กับ seed expw_step_coordinates เพื่อเติมพิกัด
+      (EXAT ไม่มี lat/lng มาให้เอง ต้อง geocode เองด้วย lookup table ระดับ "ทางด่วนทั้งสาย"
+      ความละเอียดหยาบกว่า ARMS มาก)
+    columns:
+      - name: accident_id
+        description: ประกอบเองจาก source_year_source_month__id เพราะ _id ต้นฉบับไม่ unique ข้ามเดือน/ปี
+      - name: road_name
+        description: ชื่อทางด่วน (มาจาก field expw_step)
+      - name: latitude
+        description: พิกัดตัวแทนของทางด่วนสายนั้น (ไม่ใช่จุดเกิดเหตุจริง) มาจาก seed expw_step_coordinates
+      - name: injured_severe_total
+        description: >
+          ตั้งเป็น 0 เสมอ — EXAT ไม่แยกระดับความรุนแรงผู้บาดเจ็บ ไม่ได้แปลว่าไม่มีผู้บาดเจ็บสาหัสจริง
+          ดู injured_light_total แทนสำหรับผู้บาดเจ็บทั้งหมด
+
+  - name: stg_accidents
+    description: >
+      รวม stg_arms_json + stg_arms_csv + stg_exat เป็นตารางเดียว (UNION ALL) พร้อม normalize
+      field ให้ตรงกัน และกรองพิกัดที่อยู่นอกขอบเขตประเทศไทยออก (lat 5.6-20.5, lng 97.3-105.6)
+      เป็นตารางหลักที่ Issue 08 (clustering) และ Issue 09 (mart) จะใช้ต่อ
+    columns:
+      - name: accident_id
+        description: primary key ของแถวนี้ (cast เป็น text ให้ตรงกันทุก source)
+      - name: source
+        description: "แหล่งที่มาของข้อมูล: 'arms_json', 'arms_csv', หรือ 'exat'"
+      - name: is_geocoded
+        description: >
+          true = พิกัดเป็นค่าประมาณจาก geocode lookup table (เฉพาะ exat),
+          false = พิกัดจริงจากเหตุการณ์ (arms_json/arms_csv) — ใช้แยกสไตล์แสดงผลตอนทำแผนที่ Issue 11
