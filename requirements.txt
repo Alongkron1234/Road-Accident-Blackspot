@@ -16,3 +16,9 @@ tenacity==9.0.0
 
 # Issue 04: mock HTTP request ใน unit test ไม่ต้องยิง API จริงตอนรัน pytest
 responses==0.25.3
+
+# Issue 07: dbt ต่อ Postgres แปลง raw layer เป็น staging layer
+# ต้อง pin dbt-core ควบคู่กันด้วย ไม่งั้น pip อาจ resolve เป็น dbt-core 2.x (pre-release)
+# ที่ใช้ build mechanism ใหม่ ดาวน์โหลด wheel จาก GitHub แล้ว SSL cert พังบนเครื่องนี้
+dbt-core==1.8.2
+dbt-postgres==1.8.2
