@@ -33,3 +33,6 @@ data/raw/
 
 # Personal notes, not project documentation
 docs/learning_notes.md
+
+# Internal planning doc, not meant to be public
+PLAN.md
