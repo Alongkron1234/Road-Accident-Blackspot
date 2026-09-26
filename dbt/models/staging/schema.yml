@@ -60,8 +60,24 @@ models:
     columns:
       - name: accident_id
         description: primary key ของแถวนี้ (cast เป็น text ให้ตรงกันทุก source)
+        tests:
+          - unique
+          - not_null
+      - name: accident_date
+        tests:
+          - not_null
+      - name: latitude
+        tests:
+          - not_null
+      - name: longitude
+        tests:
+          - not_null
       - name: source
         description: "แหล่งที่มาของข้อมูล: 'arms_json', 'arms_csv', หรือ 'exat'"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['arms_json', 'arms_csv', 'exat']
       - name: is_geocoded
         description: >
           true = พิกัดเป็นค่าประมาณจาก geocode lookup table (เฉพาะ exat),

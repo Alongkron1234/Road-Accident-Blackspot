@@ -9,6 +9,9 @@ models:
     columns:
       - name: accident_id
         description: primary key ของแถวนี้ (มาจาก stg_accidents)
+        tests:
+          - unique
+          - not_null
       - name: cluster_id
         description: >
           หมายเลขกลุ่มที่ ST_ClusterDBSCAN กำหนดให้ อุบัติเหตุที่มี cluster_id เดียวกันคือ
