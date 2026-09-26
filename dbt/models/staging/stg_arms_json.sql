@@ -11,7 +11,8 @@ select
     coalesce((record ->> 'DEATH')::int, 0) as dead_total,
     coalesce((record ->> 'WOUNDEDSEVERE')::int, 0) as injured_severe_total,
     coalesce((record ->> 'WOUNDEDLIGHT')::int, 0) as injured_light_total,
-    record ->> 'SUMMARY' as summary
+    record ->> 'SUMMARY' as summary,
+    loaded_at
 from {{ source('raw', 'raw_arms') }},
     jsonb_array_elements(payload) as record
 where source_format = 'json'

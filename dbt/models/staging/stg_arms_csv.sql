@@ -16,7 +16,8 @@ select
     ) as dead_total,
     coalesce((record ->> 'injury_severe_total')::int, 0) as injured_severe_total,
     coalesce((record ->> 'injury_less_total')::int, 0) as injured_light_total,
-    record ->> 'crash_pattern' as summary
+    record ->> 'crash_pattern' as summary,
+    loaded_at
 from {{ source('raw', 'raw_arms') }},
     jsonb_array_elements(payload) as record
 where source_format = 'csv'
