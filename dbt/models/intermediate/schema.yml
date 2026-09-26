@@ -1,0 +1,23 @@
+version: 2
+
+models:
+  - name: int_accident_clusters
+    description: >
+      จัดกลุ่มอุบัติเหตุที่เกิดใกล้กันด้วย PostGIS ST_ClusterDBSCAN (eps=50m, minpoints=3,
+      SRID 32647/UTM47N) เหตุผลการเลือก parameter แต่ละตัวและปัญหาที่เจอระหว่างทาง
+      ดูเพิ่มที่ docs/clustering_parameters_notes.md
+    columns:
+      - name: accident_id
+        description: primary key ของแถวนี้ (มาจาก stg_accidents)
+      - name: cluster_id
+        description: >
+          หมายเลขกลุ่มที่ ST_ClusterDBSCAN กำหนดให้ อุบัติเหตุที่มี cluster_id เดียวกันคือ
+          อยู่ในกลุ่มความหนาแน่นเดียวกัน (ห่างกันไม่เกิน eps ต่อเนื่องกันเป็นทอดๆ) เป็น NULL
+          ถ้าเป็น noise point (ไม่มีเพื่อนบ้านมากพอจะเข้ากลุ่มไหนได้) — ในข้อมูลชุดนี้ไม่มี
+          noise point เลย (0 แถว)
+      - name: source
+        description: "สืบทอดจาก stg_accidents: 'arms_json', 'arms_csv', หรือ 'exat'"
+      - name: is_geocoded
+        description: >
+          สืบทอดจาก stg_accidents — true (เฉพาะ exat) หมายความว่า cluster ที่ได้สื่อความหมาย
+          ระดับ "ทางด่วนสายไหน" ไม่ใช่ "จุดไหนบนทางด่วน" เพราะพิกัดต้นทางเป็นพิกัดตัวแทนทั้งสาย

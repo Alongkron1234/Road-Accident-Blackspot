@@ -15,7 +15,8 @@ select
     -- ไว้ที่ injured_light_total แทน
     0 as injured_severe_total,
     coalesce((record ->> 'injur_man')::int, 0) + coalesce((record ->> 'injur_femel')::int, 0) as injured_light_total,
-    record ->> 'cause' as summary
+    record ->> 'cause' as summary,
+    loaded_at
 from {{ source('raw', 'raw_exat') }},
     jsonb_array_elements(payload) as record
 left join {{ ref('expw_step_coordinates') }} as coords
