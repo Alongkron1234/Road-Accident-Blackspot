@@ -1,0 +1,32 @@
+version: 2
+
+models:
+  - name: mart_blackspot_severity
+    description: >
+      ยุบ int_accident_clusters ตาม cluster_id เป็น 1 แถวต่อ 1 จุดเสี่ยง พร้อมคำนวณ
+      severity score และจัดอันดับแยกตาม is_geocoded (ARMS พิกัดจริง vs EXAT พิกัดประมาณ
+      ไม่เทียบอันดับข้ามกลุ่มกัน) สูตร/เหตุผลการเลือกน้ำหนักดูเพิ่มที่
+      docs/severity_score_notes.md
+    columns:
+      - name: cluster_id
+        description: มาจาก int_accident_clusters (Issue 08) — primary key ของแถวนี้
+      - name: n_accidents
+        description: จำนวนอุบัติเหตุทั้งหมดใน cluster นี้
+      - name: centroid_lat
+        description: ละติจูดเฉลี่ยของทุกอุบัติเหตุใน cluster ใช้ปักหมุดบนแผนที่ (Issue 11)
+      - name: centroid_lng
+        description: ลองจิจูดเฉลี่ยของทุกอุบัติเหตุใน cluster ใช้ปักหมุดบนแผนที่ (Issue 11)
+      - name: severity_score
+        description: >
+          (10×dead_total) + (3×injured_severe_total) + (1×injured_light_total) + (2×n_accidents)
+          ยิ่งสูงยิ่งอันตราย เหตุผลของน้ำหนักแต่ละตัวดูที่ docs/severity_score_notes.md
+      - name: is_geocoded
+        description: >
+          true ถ้ามีอุบัติเหตุอย่างน้อย 1 ครั้งในกลุ่มมาจาก EXAT (พิกัดประมาณทั้งทางด่วน)
+          false ถ้าทั้งกลุ่มมาจาก ARMS (พิกัดจริง) — ใช้แยกอันดับ ไม่ให้ EXAT (n_accidents สูง
+          ผิดปกติเพราะพิกัดซ้ำกันทั้งสาย) บังหน้าจุดเสี่ยงจริงของ ARMS
+      - name: rank
+        description: >
+          อันดับความอันตรายเรียงจาก severity_score มากไปน้อย จัดอันดับแยกภายในกลุ่ม
+          is_geocoded เดียวกันเท่านั้น (rank 1 ของ true กับ rank 1 ของ false คือคนละกลุ่ม
+          เทียบกันตรงๆ ไม่ได้)
