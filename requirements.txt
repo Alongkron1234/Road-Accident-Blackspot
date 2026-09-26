@@ -22,3 +22,6 @@ responses==0.25.3
 # ที่ใช้ build mechanism ใหม่ ดาวน์โหลด wheel จาก GitHub แล้ว SSL cert พังบนเครื่องนี้
 dbt-core==1.8.2
 dbt-postgres==1.8.2
+
+# Issue 11: generate แผนที่จาก mart_blackspot_severity
+folium==0.20.0

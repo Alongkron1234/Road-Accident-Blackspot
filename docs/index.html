@@ -1,0 +1,2058 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css"/>
+    
+            <meta name="viewport" content="width=device-width,
+                initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+            <style>
+                #map_b4a9f26b15329d012cd1ee349a0e559c {
+                    position: relative;
+                    width: 100.0%;
+                    height: 100.0%;
+                    left: 0.0%;
+                    top: 0.0%;
+                }
+                .leaflet-container { font-size: 1rem; }
+            </style>
+
+            <style>html, body {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            </style>
+
+            <style>#map {
+                position:absolute;
+                top:0;
+                bottom:0;
+                right:0;
+                left:0;
+                }
+            </style>
+
+            <script>
+                L_NO_TOUCH = false;
+                L_DISABLE_3D = false;
+            </script>
+
+        
+    <script src="https://cdn.jsdelivr.net/gh/python-visualization/folium@main/folium/templates/leaflet_heat.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet.fullscreen@3.0.0/Control.FullScreen.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.fullscreen@3.0.0/Control.FullScreen.css"/>
+</head>
+<body>
+    
+    
+    <div style="position: fixed; top: 10px; left: 50px; z-index: 9999;
+                background-color: white; padding: 8px 16px; border-radius: 5px;
+                font-size: 16px; font-weight: bold; box-shadow: 0 1px 4px rgba(0,0,0,0.3);">
+        Road Accident Blackspot Map — จุดเสี่ยงอุบัติเหตุ (ARMS + EXAT)<br>
+        <span style="font-size: 12px; font-weight: normal;">
+            62 จุดเสี่ยง | อุบัติเหตุรวม 10369 ครั้ง | เสียชีวิตรวม 164 คน
+        </span>
+    </div>
+    
+    
+    <div style="position: fixed; bottom: 30px; left: 30px; z-index: 9999;
+                background-color: white; padding: 10px 14px; border-radius: 5px;
+                font-size: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.3);">
+        <b>ประเภทจุดเสี่ยง</b><br>
+        <span style="color: red;">&#9679;</span> พิกัดจริง (ARMS)<br>
+        <span style="color: orange;">&#9679;</span> พิกัดประมาณ (EXAT)<br>
+        <span style="color: black;">&#9675;</span> Top 10 ต่อกลุ่ม
+    </div>
+    
+    
+            <div class="folium-map" id="map_b4a9f26b15329d012cd1ee349a0e559c" ></div>
+        
+</body>
+<script>
+    
+    
+            var map_b4a9f26b15329d012cd1ee349a0e559c = L.map(
+                "map_b4a9f26b15329d012cd1ee349a0e559c",
+                {
+                    center: [13.75, 100.5],
+                    crs: L.CRS.EPSG3857,
+                    ...{
+  "zoom": 6,
+  "zoomControl": true,
+  "preferCanvas": false,
+}
+
+                }
+            );
+
+            
+
+        
+    
+            var tile_layer_ff7d7dbbfb1905c53f26810f9825f62d = L.tileLayer(
+                "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
+                {
+  "minZoom": 0,
+  "maxZoom": 18,
+  "maxNativeZoom": 18,
+  "noWrap": false,
+  "attribution": "Tiles \u0026copy; Esri",
+  "subdomains": "abc",
+  "detectRetina": false,
+  "tms": false,
+  "opacity": 1,
+}
+
+            );
+        
+    
+            tile_layer_ff7d7dbbfb1905c53f26810f9825f62d.addTo(map_b4a9f26b15329d012cd1ee349a0e559c);
+        
+    
+            var heat_map_975092ab13b7f31a47c5fb7418f46da5 = L.heatLayer(
+                [[13.67016615555556, 100.53855762222221, 202], [13.664349314285715, 100.53472354285715, 138], [13.663887305555555, 100.53096491666665, 124], [13.66421409375, 100.52649468749999, 89], [13.648619190476195, 100.54025476190475, 67], [13.651343222222224, 100.54121822222224, 66], [13.659568599999998, 100.53955806666664, 66], [19.483245153846152, 97.961201, 65], [13.662756611111114, 100.53889933333332, 59], [13.68410414285714, 100.54264971428572, 51], [13.665281799999999, 100.52098146666668, 47], [13.664318166666666, 100.51737994444443, 44], [12.83666, 101.15465, 42], [17.43371, 104.240009, 42], [13.675371222222223, 100.53915122222222, 42], [13.682829499999997, 100.541374875, 40], [8.339166999999998, 99.85199899999999, 39], [18.839714333333333, 98.97397066666666, 37], [14.572252666666666, 101.07637866666668, 37], [13.664458666666667, 100.53824455555555, 36], [12.900461, 101.117943, 33], [13.64968257142857, 100.54140200000002, 33], [13.662843800000001, 100.5163906, 32], [13.646588500000002, 100.5402955, 31], [13.664862999999999, 100.523905, 31], [13.666783700000002, 100.5382867, 29], [13.678444666666666, 100.53959633333334, 28], [17.401884, 101.552512, 27], [13.681348777777778, 100.54060222222222, 27], [18.8228758, 99.01451499999999, 26], [17.400663714285717, 101.55271542857143, 26], [13.654139666666666, 100.5410131111111, 25], [15.082584, 101.520462, 23], [13.656091666666667, 100.5405315, 19], [18.7417456, 98.96176840000001, 19], [13.647210166666666, 100.53968216666665, 17], [13.685146333333334, 100.544444, 17], [13.65281675, 100.54119800000001, 17], [13.647725166666666, 100.54141333333335, 14], [13.6616294, 100.5391966, 13], [16.698314399999997, 98.5310712, 12], [15.061839, 101.566819, 11], [18.8235168, 99.0092042, 11], [13.677580500000001, 100.539518, 10], [13.6468745, 100.54121275, 10], [18.742489000000003, 99.00012466666668, 10], [13.654792333333333, 100.541562, 9], [13.665735, 100.53818733333334, 9], [18.79854333333333, 99.03483333333334, 9], [18.74425366666667, 99.013755, 8], [18.646456750000002, 98.850734, 8], [18.809935333333332, 99.02602133333333, 7], [13.685565333333331, 100.54620866666666, 6], [13.799755000000001, 100.57958600000529, 6480], [13.599999999999705, 100.61999999999748, 4742], [13.590624065576371, 100.82416927731305, 4058], [13.699983806007342, 100.59125047791521, 3679], [13.794309999999816, 100.61221000000195, 2878], [13.85161948119929, 100.67323515984717, 1956], [14.02090520365445, 100.57631266776286, 1569], [13.794927503334208, 100.48570995235082, 757], [13.669449040377092, 100.62616016385597, 244]],
+                {
+  "minOpacity": 0.5,
+  "maxZoom": 18,
+  "radius": 25,
+  "blur": 15,
+}
+            );
+        
+    
+            heat_map_975092ab13b7f31a47c5fb7418f46da5.addTo(map_b4a9f26b15329d012cd1ee349a0e559c);
+        
+    
+            var feature_group_a7da7768eb68a025fb4b1852b0bf5bd6 = L.featureGroup(
+                {
+}
+            );
+        
+    
+            var circle_marker_ce77f93de3952c7d837c1bb4ac792d64 = L.circleMarker(
+                [13.67016615555556, 100.53855762222221],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 20.0, "stroke": true, "weight": 3}
+            ).addTo(feature_group_a7da7768eb68a025fb4b1852b0bf5bd6);
+        
+    
+        var popup_6b2d6056fb715dc9bae616d4d20d2066 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_f4d99117a666315332a53e797969073c = $(`<div id="html_f4d99117a666315332a53e797969073c" style="width: 100.0%; height: 100.0%;">         <b>Cluster #24</b> (rank 1)<br>         จำนวนอุบัติเหตุ: 45<br>         เสียชีวิต: 7, บาดเจ็บสาหัส: 6, บาดเจ็บเล็กน้อย: 24<br>         severity score: 202<br>         ช่วงวันที่: 2022-02-28 ถึง 2025-09-22<br>         source: arms_json=1, arms_csv=44, exat=0         </div>`)[0];
+                popup_6b2d6056fb715dc9bae616d4d20d2066.setContent(html_f4d99117a666315332a53e797969073c);
+            
+        
+
+        circle_marker_ce77f93de3952c7d837c1bb4ac792d64.bindPopup(popup_6b2d6056fb715dc9bae616d4d20d2066)
+        ;
+
+        
+    
+    
+            var circle_marker_1b57f99efbb097c99d4d32c404675c2e = L.circleMarker(
+                [13.664349314285715, 100.53472354285715],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 15.247524752475249, "stroke": true, "weight": 3}
+            ).addTo(feature_group_a7da7768eb68a025fb4b1852b0bf5bd6);
+        
+    
+        var popup_c554ff54f305ea2aec4e737ff260ecad = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_f51febe5635306dc01cf213b1d5b8ed0 = $(`<div id="html_f51febe5635306dc01cf213b1d5b8ed0" style="width: 100.0%; height: 100.0%;">         <b>Cluster #20</b> (rank 2)<br>         จำนวนอุบัติเหตุ: 35<br>         เสียชีวิต: 3, บาดเจ็บสาหัส: 2, บาดเจ็บเล็กน้อย: 32<br>         severity score: 138<br>         ช่วงวันที่: 2022-01-21 ถึง 2025-08-19<br>         source: arms_json=2, arms_csv=33, exat=0         </div>`)[0];
+                popup_c554ff54f305ea2aec4e737ff260ecad.setContent(html_f51febe5635306dc01cf213b1d5b8ed0);
+            
+        
+
+        circle_marker_1b57f99efbb097c99d4d32c404675c2e.bindPopup(popup_c554ff54f305ea2aec4e737ff260ecad)
+        ;
+
+        
+    
+    
+            var circle_marker_7f8aa6a9b261027d611f6ead453b64e0 = L.circleMarker(
+                [13.663887305555555, 100.53096491666665],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 14.207920792079207, "stroke": true, "weight": 3}
+            ).addTo(feature_group_a7da7768eb68a025fb4b1852b0bf5bd6);
+        
+    
+        var popup_b5d293a90a47a0934bd6cf63ba460461 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_81cd349fdbc0bdee556f744432a44f59 = $(`<div id="html_81cd349fdbc0bdee556f744432a44f59" style="width: 100.0%; height: 100.0%;">         <b>Cluster #51</b> (rank 3)<br>         จำนวนอุบัติเหตุ: 36<br>         เสียชีวิต: 2, บาดเจ็บสาหัส: 1, บาดเจ็บเล็กน้อย: 29<br>         severity score: 124<br>         ช่วงวันที่: 2022-10-16 ถึง 2025-09-23<br>         source: arms_json=0, arms_csv=36, exat=0         </div>`)[0];
+                popup_b5d293a90a47a0934bd6cf63ba460461.setContent(html_81cd349fdbc0bdee556f744432a44f59);
+            
+        
+
+        circle_marker_7f8aa6a9b261027d611f6ead453b64e0.bindPopup(popup_b5d293a90a47a0934bd6cf63ba460461)
+        ;
+
+        
+    
+    
+            var circle_marker_699f1894d4c192aa98341d38b239c9ec = L.circleMarker(
+                [13.66421409375, 100.52649468749999],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 11.60891089108911, "stroke": true, "weight": 3}
+            ).addTo(feature_group_a7da7768eb68a025fb4b1852b0bf5bd6);
+        
+    
+        var popup_554990f5c6dd4b3d9c9244bef28a72a0 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_3dd811c90dfcf2966d36d826985e8424 = $(`<div id="html_3dd811c90dfcf2966d36d826985e8424" style="width: 100.0%; height: 100.0%;">         <b>Cluster #19</b> (rank 4)<br>         จำนวนอุบัติเหตุ: 32<br>         เสียชีวิต: 0, บาดเจ็บสาหัส: 1, บาดเจ็บเล็กน้อย: 22<br>         severity score: 89<br>         ช่วงวันที่: 2022-10-28 ถึง 2025-09-03<br>         source: arms_json=0, arms_csv=32, exat=0         </div>`)[0];
+                popup_554990f5c6dd4b3d9c9244bef28a72a0.setContent(html_3dd811c90dfcf2966d36d826985e8424);
+            
+        
+
+        circle_marker_699f1894d4c192aa98341d38b239c9ec.bindPopup(popup_554990f5c6dd4b3d9c9244bef28a72a0)
+        ;
+
+        
+    
+    
+            var circle_marker_b982c89ffebd58c6871140df5ba43c4f = L.circleMarker(
+                [13.648619190476195, 100.54025476190475],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 9.975247524752476, "stroke": true, "weight": 3}
+            ).addTo(feature_group_a7da7768eb68a025fb4b1852b0bf5bd6);
+        
+    
+        var popup_ba5ad7ea1d40391b4fa991471995ac2a = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_47906fc453391050f91594c3b8405671 = $(`<div id="html_47906fc453391050f91594c3b8405671" style="width: 100.0%; height: 100.0%;">         <b>Cluster #27</b> (rank 5)<br>         จำนวนอุบัติเหตุ: 21<br>         เสียชีวิต: 0, บาดเจ็บสาหัส: 1, บาดเจ็บเล็กน้อย: 22<br>         severity score: 67<br>         ช่วงวันที่: 2022-12-15 ถึง 2025-02-03<br>         source: arms_json=0, arms_csv=21, exat=0         </div>`)[0];
+                popup_ba5ad7ea1d40391b4fa991471995ac2a.setContent(html_47906fc453391050f91594c3b8405671);
+            
+        
+
+        circle_marker_b982c89ffebd58c6871140df5ba43c4f.bindPopup(popup_ba5ad7ea1d40391b4fa991471995ac2a)
+        ;
+
+        
+    
+    
+            var circle_marker_0ca340db54c0913afdf54665034dd87a = L.circleMarker(
+                [13.651343222222224, 100.54121822222224],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 9.900990099009901, "stroke": true, "weight": 3}
+            ).addTo(feature_group_a7da7768eb68a025fb4b1852b0bf5bd6);
+        
+    
+        var popup_f7347404df58c46f7cbbb550862ef8c3 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_80f8ae59c2f8d202d2c4d370ded6a094 = $(`<div id="html_80f8ae59c2f8d202d2c4d370ded6a094" style="width: 100.0%; height: 100.0%;">         <b>Cluster #21</b> (rank 6)<br>         จำนวนอุบัติเหตุ: 18<br>         เสียชีวิต: 2, บาดเจ็บสาหัส: 0, บาดเจ็บเล็กน้อย: 10<br>         severity score: 66<br>         ช่วงวันที่: 2022-01-03 ถึง 2025-08-26<br>         source: arms_json=3, arms_csv=15, exat=0         </div>`)[0];
+                popup_f7347404df58c46f7cbbb550862ef8c3.setContent(html_80f8ae59c2f8d202d2c4d370ded6a094);
+            
+        
+
+        circle_marker_0ca340db54c0913afdf54665034dd87a.bindPopup(popup_f7347404df58c46f7cbbb550862ef8c3)
+        ;
+
+        
+    
+    
+            var circle_marker_6b41888172d87fdde40cb990a8813426 = L.circleMarker(
+                [13.659568599999998, 100.53955806666664],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 9.900990099009901, "stroke": true, "weight": 3}
+            ).addTo(feature_group_a7da7768eb68a025fb4b1852b0bf5bd6);
+        
+    
+        var popup_cd9b4c1d50bfc27b7a67356624838423 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_ab6a856633688f895e7200d91f8b2a1e = $(`<div id="html_ab6a856633688f895e7200d91f8b2a1e" style="width: 100.0%; height: 100.0%;">         <b>Cluster #30</b> (rank 6)<br>         จำนวนอุบัติเหตุ: 15<br>         เสียชีวิต: 2, บาดเจ็บสาหัส: 2, บาดเจ็บเล็กน้อย: 10<br>         severity score: 66<br>         ช่วงวันที่: 2022-01-30 ถึง 2025-07-16<br>         source: arms_json=2, arms_csv=13, exat=0         </div>`)[0];
+                popup_cd9b4c1d50bfc27b7a67356624838423.setContent(html_ab6a856633688f895e7200d91f8b2a1e);
+            
+        
+
+        circle_marker_6b41888172d87fdde40cb990a8813426.bindPopup(popup_cd9b4c1d50bfc27b7a67356624838423)
+        ;
+
+        
+    
+    
+            var circle_marker_8d87b6c44e083d44e224d1e1e74f62f8 = L.circleMarker(
+                [19.483245153846152, 97.961201],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 9.826732673267326, "stroke": true, "weight": 3}
+            ).addTo(feature_group_a7da7768eb68a025fb4b1852b0bf5bd6);
+        
+    
+        var popup_0d9343f634c6e88b530924f6097e981b = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_3aa8aecd48f3b1af658701b264d7bdfe = $(`<div id="html_3aa8aecd48f3b1af658701b264d7bdfe" style="width: 100.0%; height: 100.0%;">         <b>Cluster #12</b> (rank 8)<br>         จำนวนอุบัติเหตุ: 13<br>         เสียชีวิต: 0, บาดเจ็บสาหัส: 3, บาดเจ็บเล็กน้อย: 30<br>         severity score: 65<br>         ช่วงวันที่: 2021-12-31 ถึง 2025-08-11<br>         source: arms_json=1, arms_csv=12, exat=0         </div>`)[0];
+                popup_0d9343f634c6e88b530924f6097e981b.setContent(html_3aa8aecd48f3b1af658701b264d7bdfe);
+            
+        
+
+        circle_marker_8d87b6c44e083d44e224d1e1e74f62f8.bindPopup(popup_0d9343f634c6e88b530924f6097e981b)
+        ;
+
+        
+    
+    
+            var circle_marker_dc335fc4df538ef7b11d407f56aefb61 = L.circleMarker(
+                [13.662756611111114, 100.53889933333332],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 9.381188118811881, "stroke": true, "weight": 3}
+            ).addTo(feature_group_a7da7768eb68a025fb4b1852b0bf5bd6);
+        
+    
+        var popup_22c6946064803661aa6deb62f010c00f = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_305987af3fab4a4244970ebc5090f95e = $(`<div id="html_305987af3fab4a4244970ebc5090f95e" style="width: 100.0%; height: 100.0%;">         <b>Cluster #26</b> (rank 9)<br>         จำนวนอุบัติเหตุ: 18<br>         เสียชีวิต: 1, บาดเจ็บสาหัส: 1, บาดเจ็บเล็กน้อย: 10<br>         severity score: 59<br>         ช่วงวันที่: 2022-12-10 ถึง 2025-03-09<br>         source: arms_json=0, arms_csv=18, exat=0         </div>`)[0];
+                popup_22c6946064803661aa6deb62f010c00f.setContent(html_305987af3fab4a4244970ebc5090f95e);
+            
+        
+
+        circle_marker_dc335fc4df538ef7b11d407f56aefb61.bindPopup(popup_22c6946064803661aa6deb62f010c00f)
+        ;
+
+        
+    
+    
+            var circle_marker_d0adf4730c28bb2832e2956f335498fc = L.circleMarker(
+                [13.68410414285714, 100.54264971428572],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8.787128712871286, "stroke": true, "weight": 3}
+            ).addTo(feature_group_a7da7768eb68a025fb4b1852b0bf5bd6);
+        
+    
+        var popup_b985e074f8adbf6d1937d1e7b619e1bf = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_f8ddde474a4987e0bac8ecd431b9a31d = $(`<div id="html_f8ddde474a4987e0bac8ecd431b9a31d" style="width: 100.0%; height: 100.0%;">         <b>Cluster #57</b> (rank 10)<br>         จำนวนอุบัติเหตุ: 7<br>         เสียชีวิต: 3, บาดเจ็บสาหัส: 1, บาดเจ็บเล็กน้อย: 4<br>         severity score: 51<br>         ช่วงวันที่: 2023-11-28 ถึง 2025-09-12<br>         source: arms_json=0, arms_csv=7, exat=0         </div>`)[0];
+                popup_b985e074f8adbf6d1937d1e7b619e1bf.setContent(html_f8ddde474a4987e0bac8ecd431b9a31d);
+            
+        
+
+        circle_marker_d0adf4730c28bb2832e2956f335498fc.bindPopup(popup_b985e074f8adbf6d1937d1e7b619e1bf)
+        ;
+
+        
+    
+    
+            var circle_marker_5ff6c3262b464bf79d3c65feb9b88cab = L.circleMarker(
+                [13.665281799999999, 100.52098146666668],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8.490099009900991, "stroke": true, "weight": 3}
+            ).addTo(feature_group_a7da7768eb68a025fb4b1852b0bf5bd6);
+        
+    
+        var popup_6fa8afd0a6775e94f78c4ffc5a3ca0ce = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_7b33242c7f1723cc296cd46a55b2bfad = $(`<div id="html_7b33242c7f1723cc296cd46a55b2bfad" style="width: 100.0%; height: 100.0%;">         <b>Cluster #54</b> (rank 11)<br>         จำนวนอุบัติเหตุ: 15<br>         เสียชีวิต: 1, บาดเจ็บสาหัส: 0, บาดเจ็บเล็กน้อย: 7<br>         severity score: 47<br>         ช่วงวันที่: 2023-10-11 ถึง 2025-07-05<br>         source: arms_json=0, arms_csv=15, exat=0         </div>`)[0];
+                popup_6fa8afd0a6775e94f78c4ffc5a3ca0ce.setContent(html_7b33242c7f1723cc296cd46a55b2bfad);
+            
+        
+
+        circle_marker_5ff6c3262b464bf79d3c65feb9b88cab.bindPopup(popup_6fa8afd0a6775e94f78c4ffc5a3ca0ce)
+        ;
+
+        
+    
+    
+            var circle_marker_9c2809e308dd4935075f31a5b3f84bfb = L.circleMarker(
+                [13.664318166666666, 100.51737994444443],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8.267326732673267, "stroke": true, "weight": 3}
+            ).addTo(feature_group_a7da7768eb68a025fb4b1852b0bf5bd6);
+        
+    
+        var popup_b6fbf9d20f19efb3e5ff44c8b9f41f77 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_79963de675c1255467b845c50ddaaa95 = $(`<div id="html_79963de675c1255467b845c50ddaaa95" style="width: 100.0%; height: 100.0%;">         <b>Cluster #9</b> (rank 12)<br>         จำนวนอุบัติเหตุ: 18<br>         เสียชีวิต: 0, บาดเจ็บสาหัส: 0, บาดเจ็บเล็กน้อย: 8<br>         severity score: 44<br>         ช่วงวันที่: 2022-01-14 ถึง 2025-09-05<br>         source: arms_json=1, arms_csv=17, exat=0         </div>`)[0];
+                popup_b6fbf9d20f19efb3e5ff44c8b9f41f77.setContent(html_79963de675c1255467b845c50ddaaa95);
+            
+        
+
+        circle_marker_9c2809e308dd4935075f31a5b3f84bfb.bindPopup(popup_b6fbf9d20f19efb3e5ff44c8b9f41f77)
+        ;
+
+        
+    
+    
+            var circle_marker_43eb06ee33cb54b1f25352a8242343a2 = L.circleMarker(
+                [12.83666, 101.15465],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8.118811881188119, "stroke": true, "weight": 3}
+            ).addTo(feature_group_a7da7768eb68a025fb4b1852b0bf5bd6);
+        
+    
+        var popup_9860e32e4c235b7574f8026dd88622e3 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_2bf64381627b814e2fb2399ca42d947a = $(`<div id="html_2bf64381627b814e2fb2399ca42d947a" style="width: 100.0%; height: 100.0%;">         <b>Cluster #56</b> (rank 13)<br>         จำนวนอุบัติเหตุ: 5<br>         เสียชีวิต: 1, บาดเจ็บสาหัส: 5, บาดเจ็บเล็กน้อย: 7<br>         severity score: 42<br>         ช่วงวันที่: 2023-11-29 ถึง 2024-09-04<br>         source: arms_json=0, arms_csv=5, exat=0         </div>`)[0];
+                popup_9860e32e4c235b7574f8026dd88622e3.setContent(html_2bf64381627b814e2fb2399ca42d947a);
+            
+        
+
+        circle_marker_43eb06ee33cb54b1f25352a8242343a2.bindPopup(popup_9860e32e4c235b7574f8026dd88622e3)
+        ;
+
+        
+    
+    
+            var circle_marker_c8d254a0d580e56f7bf1906228101f0b = L.circleMarker(
+                [17.43371, 104.240009],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8.118811881188119, "stroke": true, "weight": 3}
+            ).addTo(feature_group_a7da7768eb68a025fb4b1852b0bf5bd6);
+        
+    
+        var popup_e0d6796daa9c763757b25dc30cc093ef = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_66d19d97f5dcfc51eb2a3cf4b3e9ec92 = $(`<div id="html_66d19d97f5dcfc51eb2a3cf4b3e9ec92" style="width: 100.0%; height: 100.0%;">         <b>Cluster #55</b> (rank 13)<br>         จำนวนอุบัติเหตุ: 3<br>         เสียชีวิต: 2, บาดเจ็บสาหัส: 5, บาดเจ็บเล็กน้อย: 1<br>         severity score: 42<br>         ช่วงวันที่: 2023-11-14 ถึง 2024-06-02<br>         source: arms_json=0, arms_csv=3, exat=0         </div>`)[0];
+                popup_e0d6796daa9c763757b25dc30cc093ef.setContent(html_66d19d97f5dcfc51eb2a3cf4b3e9ec92);
+            
+        
+
+        circle_marker_c8d254a0d580e56f7bf1906228101f0b.bindPopup(popup_e0d6796daa9c763757b25dc30cc093ef)
+        ;
+
+        
+    
+    
+            var circle_marker_aa834cca5884db26139147d6e23ea280 = L.circleMarker(
+                [13.675371222222223, 100.53915122222222],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8.118811881188119, "stroke": true, "weight": 3}
+            ).addTo(feature_group_a7da7768eb68a025fb4b1852b0bf5bd6);
+        
+    
+        var popup_8e9e25294a45eb1f702f85ad43ae588f = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_6b822f64796995ecdf45f5fbb541c599 = $(`<div id="html_6b822f64796995ecdf45f5fbb541c599" style="width: 100.0%; height: 100.0%;">         <b>Cluster #52</b> (rank 13)<br>         จำนวนอุบัติเหตุ: 9<br>         เสียชีวิต: 2, บาดเจ็บสาหัส: 0, บาดเจ็บเล็กน้อย: 4<br>         severity score: 42<br>         ช่วงวันที่: 2023-07-15 ถึง 2025-09-04<br>         source: arms_json=0, arms_csv=9, exat=0         </div>`)[0];
+                popup_8e9e25294a45eb1f702f85ad43ae588f.setContent(html_6b822f64796995ecdf45f5fbb541c599);
+            
+        
+
+        circle_marker_aa834cca5884db26139147d6e23ea280.bindPopup(popup_8e9e25294a45eb1f702f85ad43ae588f)
+        ;
+
+        
+    
+    
+            var circle_marker_332f04e1f2c20c72ed3b9cf46af6f061 = L.circleMarker(
+                [13.682829499999997, 100.541374875],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 7.97029702970297, "stroke": true, "weight": 3}
+            ).addTo(feature_group_a7da7768eb68a025fb4b1852b0bf5bd6);
+        
+    
+        var popup_180aac692d5b4e7ef9388f7828a18940 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_9da17c6c81a1734c048aadf322093038 = $(`<div id="html_9da17c6c81a1734c048aadf322093038" style="width: 100.0%; height: 100.0%;">         <b>Cluster #41</b> (rank 16)<br>         จำนวนอุบัติเหตุ: 8<br>         เสียชีวิต: 2, บาดเจ็บสาหัส: 0, บาดเจ็บเล็กน้อย: 4<br>         severity score: 40<br>         ช่วงวันที่: 2023-03-09 ถึง 2025-09-05<br>         source: arms_json=0, arms_csv=8, exat=0         </div>`)[0];
+                popup_180aac692d5b4e7ef9388f7828a18940.setContent(html_9da17c6c81a1734c048aadf322093038);
+            
+        
+
+        circle_marker_332f04e1f2c20c72ed3b9cf46af6f061.bindPopup(popup_180aac692d5b4e7ef9388f7828a18940)
+        ;
+
+        
+    
+    
+            var circle_marker_986261434ddd1be193a61757f3379b79 = L.circleMarker(
+                [8.339166999999998, 99.85199899999999],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 7.896039603960396, "stroke": true, "weight": 3}
+            ).addTo(feature_group_a7da7768eb68a025fb4b1852b0bf5bd6);
+        
+    
+        var popup_eed5ab43ca161830faf9d0ef098f6d42 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_879800ebaf9ff699ed56f99bcec9148f = $(`<div id="html_879800ebaf9ff699ed56f99bcec9148f" style="width: 100.0%; height: 100.0%;">         <b>Cluster #45</b> (rank 17)<br>         จำนวนอุบัติเหตุ: 3<br>         เสียชีวิต: 1, บาดเจ็บสาหัส: 6, บาดเจ็บเล็กน้อย: 5<br>         severity score: 39<br>         ช่วงวันที่: 2023-03-25 ถึง 2025-08-28<br>         source: arms_json=0, arms_csv=3, exat=0         </div>`)[0];
+                popup_eed5ab43ca161830faf9d0ef098f6d42.setContent(html_879800ebaf9ff699ed56f99bcec9148f);
+            
+        
+
+        circle_marker_986261434ddd1be193a61757f3379b79.bindPopup(popup_eed5ab43ca161830faf9d0ef098f6d42)
+        ;
+
+        
+    
+    
+            var circle_marker_e4cd2e355ecbc108bf5948987d495ff7 = L.circleMarker(
+                [18.839714333333333, 98.97397066666666],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 7.747524752475247, "stroke": true, "weight": 3}
+            ).addTo(feature_group_a7da7768eb68a025fb4b1852b0bf5bd6);
+        
+    
+        var popup_bd3111bb30852afe37c08c5fbe4c77e7 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_6eab79847d61883697c48eb38a582e4d = $(`<div id="html_6eab79847d61883697c48eb38a582e4d" style="width: 100.0%; height: 100.0%;">         <b>Cluster #31</b> (rank 18)<br>         จำนวนอุบัติเหตุ: 6<br>         เสียชีวิต: 2, บาดเจ็บสาหัส: 1, บาดเจ็บเล็กน้อย: 2<br>         severity score: 37<br>         ช่วงวันที่: 2022-12-30 ถึง 2025-05-19<br>         source: arms_json=0, arms_csv=6, exat=0         </div>`)[0];
+                popup_bd3111bb30852afe37c08c5fbe4c77e7.setContent(html_6eab79847d61883697c48eb38a582e4d);
+            
+        
+
+        circle_marker_e4cd2e355ecbc108bf5948987d495ff7.bindPopup(popup_bd3111bb30852afe37c08c5fbe4c77e7)
+        ;
+
+        
+    
+    
+            var circle_marker_a4551e512daa61822627359cd98d0960 = L.circleMarker(
+                [14.572252666666666, 101.07637866666668],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 7.747524752475247, "stroke": true, "weight": 3}
+            ).addTo(feature_group_a7da7768eb68a025fb4b1852b0bf5bd6);
+        
+    
+        var popup_1c68a46d7d131d7a0a7fd148e3ed442f = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_d4e29860a7e9ec0537d13d978dcaf911 = $(`<div id="html_d4e29860a7e9ec0537d13d978dcaf911" style="width: 100.0%; height: 100.0%;">         <b>Cluster #18</b> (rank 18)<br>         จำนวนอุบัติเหตุ: 3<br>         เสียชีวิต: 3, บาดเจ็บสาหัส: 0, บาดเจ็บเล็กน้อย: 1<br>         severity score: 37<br>         ช่วงวันที่: 2022-10-23 ถึง 2024-02-02<br>         source: arms_json=0, arms_csv=3, exat=0         </div>`)[0];
+                popup_1c68a46d7d131d7a0a7fd148e3ed442f.setContent(html_d4e29860a7e9ec0537d13d978dcaf911);
+            
+        
+
+        circle_marker_a4551e512daa61822627359cd98d0960.bindPopup(popup_1c68a46d7d131d7a0a7fd148e3ed442f)
+        ;
+
+        
+    
+    
+            var circle_marker_80934f3203ec6b19dbb4c50558f13c5b = L.circleMarker(
+                [13.664458666666667, 100.53824455555555],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 7.673267326732673, "stroke": true, "weight": 3}
+            ).addTo(feature_group_a7da7768eb68a025fb4b1852b0bf5bd6);
+        
+    
+        var popup_c42dac7985f74de385f23be76363e3db = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_b20a5ecb2203937f7eeca65fd42d6fa9 = $(`<div id="html_b20a5ecb2203937f7eeca65fd42d6fa9" style="width: 100.0%; height: 100.0%;">         <b>Cluster #34</b> (rank 20)<br>         จำนวนอุบัติเหตุ: 9<br>         เสียชีวิต: 1, บาดเจ็บสาหัส: 2, บาดเจ็บเล็กน้อย: 2<br>         severity score: 36<br>         ช่วงวันที่: 2022-01-04 ถึง 2025-07-16<br>         source: arms_json=2, arms_csv=7, exat=0         </div>`)[0];
+                popup_c42dac7985f74de385f23be76363e3db.setContent(html_b20a5ecb2203937f7eeca65fd42d6fa9);
+            
+        
+
+        circle_marker_80934f3203ec6b19dbb4c50558f13c5b.bindPopup(popup_c42dac7985f74de385f23be76363e3db)
+        ;
+
+        
+    
+    
+            var circle_marker_a359e4107240b010d7643f63a7eaacd0 = L.circleMarker(
+                [12.900461, 101.117943],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 7.4504950495049505, "stroke": true, "weight": 3}
+            ).addTo(feature_group_a7da7768eb68a025fb4b1852b0bf5bd6);
+        
+    
+        var popup_81a312cfc7d01e254c0326b8da2927ed = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_a97e218f4bb6900688247d7e62663883 = $(`<div id="html_a97e218f4bb6900688247d7e62663883" style="width: 100.0%; height: 100.0%;">         <b>Cluster #36</b> (rank 21)<br>         จำนวนอุบัติเหตุ: 4<br>         เสียชีวิต: 0, บาดเจ็บสาหัส: 7, บาดเจ็บเล็กน้อย: 4<br>         severity score: 33<br>         ช่วงวันที่: 2023-02-09 ถึง 2024-02-12<br>         source: arms_json=0, arms_csv=4, exat=0         </div>`)[0];
+                popup_81a312cfc7d01e254c0326b8da2927ed.setContent(html_a97e218f4bb6900688247d7e62663883);
+            
+        
+
+        circle_marker_a359e4107240b010d7643f63a7eaacd0.bindPopup(popup_81a312cfc7d01e254c0326b8da2927ed)
+        ;
+
+        
+    
+    
+            var circle_marker_456b975bdc75634fd3949325ce373253 = L.circleMarker(
+                [13.64968257142857, 100.54140200000002],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 7.4504950495049505, "stroke": true, "weight": 3}
+            ).addTo(feature_group_a7da7768eb68a025fb4b1852b0bf5bd6);
+        
+    
+        var popup_1a5b0d2a49700fcb211d6e188d8b1ec4 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_2a6441f523907b3cda32d75e7ab836cb = $(`<div id="html_2a6441f523907b3cda32d75e7ab836cb" style="width: 100.0%; height: 100.0%;">         <b>Cluster #13</b> (rank 21)<br>         จำนวนอุบัติเหตุ: 14<br>         เสียชีวิต: 0, บาดเจ็บสาหัส: 0, บาดเจ็บเล็กน้อย: 5<br>         severity score: 33<br>         ช่วงวันที่: 2022-02-20 ถึง 2025-08-01<br>         source: arms_json=1, arms_csv=13, exat=0         </div>`)[0];
+                popup_1a5b0d2a49700fcb211d6e188d8b1ec4.setContent(html_2a6441f523907b3cda32d75e7ab836cb);
+            
+        
+
+        circle_marker_456b975bdc75634fd3949325ce373253.bindPopup(popup_1a5b0d2a49700fcb211d6e188d8b1ec4)
+        ;
+
+        
+    
+    
+            var circle_marker_7bdac78f8105801bbfad83959c3bc937 = L.circleMarker(
+                [13.662843800000001, 100.5163906],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 7.376237623762377, "stroke": true, "weight": 3}
+            ).addTo(feature_group_a7da7768eb68a025fb4b1852b0bf5bd6);
+        
+    
+        var popup_2ec8cce39c71a789751541435facd469 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_0392e80da79d70b945a9ea2689ff15df = $(`<div id="html_0392e80da79d70b945a9ea2689ff15df" style="width: 100.0%; height: 100.0%;">         <b>Cluster #15</b> (rank 23)<br>         จำนวนอุบัติเหตุ: 10<br>         เสียชีวิต: 1, บาดเจ็บสาหัส: 0, บาดเจ็บเล็กน้อย: 2<br>         severity score: 32<br>         ช่วงวันที่: 2022-02-15 ถึง 2025-03-03<br>         source: arms_json=1, arms_csv=9, exat=0         </div>`)[0];
+                popup_2ec8cce39c71a789751541435facd469.setContent(html_0392e80da79d70b945a9ea2689ff15df);
+            
+        
+
+        circle_marker_7bdac78f8105801bbfad83959c3bc937.bindPopup(popup_2ec8cce39c71a789751541435facd469)
+        ;
+
+        
+    
+    
+            var circle_marker_66e9df4d01e962572994acaeaff77d9e = L.circleMarker(
+                [13.646588500000002, 100.5402955],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 7.301980198019802, "stroke": true, "weight": 3}
+            ).addTo(feature_group_a7da7768eb68a025fb4b1852b0bf5bd6);
+        
+    
+        var popup_66f57880037d5940011993b93ff6e0be = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_a4fad4d7db08bea7cc677d1786a76229 = $(`<div id="html_a4fad4d7db08bea7cc677d1786a76229" style="width: 100.0%; height: 100.0%;">         <b>Cluster #37</b> (rank 24)<br>         จำนวนอุบัติเหตุ: 8<br>         เสียชีวิต: 1, บาดเจ็บสาหัส: 1, บาดเจ็บเล็กน้อย: 2<br>         severity score: 31<br>         ช่วงวันที่: 2022-01-23 ถึง 2025-08-15<br>         source: arms_json=1, arms_csv=7, exat=0         </div>`)[0];
+                popup_66f57880037d5940011993b93ff6e0be.setContent(html_a4fad4d7db08bea7cc677d1786a76229);
+            
+        
+
+        circle_marker_66e9df4d01e962572994acaeaff77d9e.bindPopup(popup_66f57880037d5940011993b93ff6e0be)
+        ;
+
+        
+    
+    
+            var circle_marker_ffff6e5116e2b071b6e7703aa572a4a5 = L.circleMarker(
+                [13.664862999999999, 100.523905],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 7.301980198019802, "stroke": true, "weight": 3}
+            ).addTo(feature_group_a7da7768eb68a025fb4b1852b0bf5bd6);
+        
+    
+        var popup_fefe4c057cbeacd72ad9f87f8718c866 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_2504326caff919666bb5e8c2a6df20da = $(`<div id="html_2504326caff919666bb5e8c2a6df20da" style="width: 100.0%; height: 100.0%;">         <b>Cluster #10</b> (rank 24)<br>         จำนวนอุบัติเหตุ: 13<br>         เสียชีวิต: 0, บาดเจ็บสาหัส: 0, บาดเจ็บเล็กน้อย: 5<br>         severity score: 31<br>         ช่วงวันที่: 2022-10-07 ถึง 2025-06-04<br>         source: arms_json=0, arms_csv=13, exat=0         </div>`)[0];
+                popup_fefe4c057cbeacd72ad9f87f8718c866.setContent(html_2504326caff919666bb5e8c2a6df20da);
+            
+        
+
+        circle_marker_ffff6e5116e2b071b6e7703aa572a4a5.bindPopup(popup_fefe4c057cbeacd72ad9f87f8718c866)
+        ;
+
+        
+    
+    
+            var circle_marker_c6583ab26def972ea6b79ad70648bfb7 = L.circleMarker(
+                [13.666783700000002, 100.5382867],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 7.153465346534653, "stroke": true, "weight": 3}
+            ).addTo(feature_group_a7da7768eb68a025fb4b1852b0bf5bd6);
+        
+    
+        var popup_56ef3a6ccae0a7e07e58459986b9c265 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_12e0a392296d303e1e21d2fece56d5ef = $(`<div id="html_12e0a392296d303e1e21d2fece56d5ef" style="width: 100.0%; height: 100.0%;">         <b>Cluster #42</b> (rank 26)<br>         จำนวนอุบัติเหตุ: 10<br>         เสียชีวิต: 0, บาดเจ็บสาหัส: 1, บาดเจ็บเล็กน้อย: 6<br>         severity score: 29<br>         ช่วงวันที่: 2022-03-12 ถึง 2025-09-25<br>         source: arms_json=1, arms_csv=9, exat=0         </div>`)[0];
+                popup_56ef3a6ccae0a7e07e58459986b9c265.setContent(html_12e0a392296d303e1e21d2fece56d5ef);
+            
+        
+
+        circle_marker_c6583ab26def972ea6b79ad70648bfb7.bindPopup(popup_56ef3a6ccae0a7e07e58459986b9c265)
+        ;
+
+        
+    
+    
+            var circle_marker_f21ed6eb7803c16e0979dcac1eb61c8c = L.circleMarker(
+                [13.678444666666666, 100.53959633333334],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 7.079207920792079, "stroke": true, "weight": 3}
+            ).addTo(feature_group_a7da7768eb68a025fb4b1852b0bf5bd6);
+        
+    
+        var popup_b1d9e4e56a2bba63d11b4ec81a4015eb = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_78c512e30aeb6531cef511a1e6bec6f1 = $(`<div id="html_78c512e30aeb6531cef511a1e6bec6f1" style="width: 100.0%; height: 100.0%;">         <b>Cluster #53</b> (rank 27)<br>         จำนวนอุบัติเหตุ: 6<br>         เสียชีวิต: 1, บาดเจ็บสาหัส: 0, บาดเจ็บเล็กน้อย: 6<br>         severity score: 28<br>         ช่วงวันที่: 2023-07-27 ถึง 2025-09-14<br>         source: arms_json=0, arms_csv=6, exat=0         </div>`)[0];
+                popup_b1d9e4e56a2bba63d11b4ec81a4015eb.setContent(html_78c512e30aeb6531cef511a1e6bec6f1);
+            
+        
+
+        circle_marker_f21ed6eb7803c16e0979dcac1eb61c8c.bindPopup(popup_b1d9e4e56a2bba63d11b4ec81a4015eb)
+        ;
+
+        
+    
+    
+            var circle_marker_b42b47fffd378331af06b832fae8ad43 = L.circleMarker(
+                [17.401884, 101.552512],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 7.0049504950495045, "stroke": true, "weight": 3}
+            ).addTo(feature_group_a7da7768eb68a025fb4b1852b0bf5bd6);
+        
+    
+        var popup_b55ab2141db0f8987c48c2285e6b4f1a = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_48c66e62af00c1b649fb4e8d77653e6f = $(`<div id="html_48c66e62af00c1b649fb4e8d77653e6f" style="width: 100.0%; height: 100.0%;">         <b>Cluster #25</b> (rank 28)<br>         จำนวนอุบัติเหตุ: 3<br>         เสียชีวิต: 2, บาดเจ็บสาหัส: 0, บาดเจ็บเล็กน้อย: 1<br>         severity score: 27<br>         ช่วงวันที่: 2022-12-06 ถึง 2023-08-01<br>         source: arms_json=0, arms_csv=3, exat=0         </div>`)[0];
+                popup_b55ab2141db0f8987c48c2285e6b4f1a.setContent(html_48c66e62af00c1b649fb4e8d77653e6f);
+            
+        
+
+        circle_marker_b42b47fffd378331af06b832fae8ad43.bindPopup(popup_b55ab2141db0f8987c48c2285e6b4f1a)
+        ;
+
+        
+    
+    
+            var circle_marker_5b438c06ac0e3fb6552f75076de57e7c = L.circleMarker(
+                [13.681348777777778, 100.54060222222222],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 7.0049504950495045, "stroke": true, "weight": 3}
+            ).addTo(feature_group_a7da7768eb68a025fb4b1852b0bf5bd6);
+        
+    
+        var popup_3193e90f5514e12f0fc378fbc27713b6 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_0b5b0c641929abe54a2391e719deaea3 = $(`<div id="html_0b5b0c641929abe54a2391e719deaea3" style="width: 100.0%; height: 100.0%;">         <b>Cluster #38</b> (rank 28)<br>         จำนวนอุบัติเหตุ: 9<br>         เสียชีวิต: 0, บาดเจ็บสาหัส: 1, บาดเจ็บเล็กน้อย: 6<br>         severity score: 27<br>         ช่วงวันที่: 2022-01-10 ถึง 2025-02-27<br>         source: arms_json=1, arms_csv=8, exat=0         </div>`)[0];
+                popup_3193e90f5514e12f0fc378fbc27713b6.setContent(html_0b5b0c641929abe54a2391e719deaea3);
+            
+        
+
+        circle_marker_5b438c06ac0e3fb6552f75076de57e7c.bindPopup(popup_3193e90f5514e12f0fc378fbc27713b6)
+        ;
+
+        
+    
+    
+            var circle_marker_c2f9075d71a1080ccd0d753341fff14d = L.circleMarker(
+                [18.8228758, 99.01451499999999],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6.930693069306931, "stroke": true, "weight": 3}
+            ).addTo(feature_group_a7da7768eb68a025fb4b1852b0bf5bd6);
+        
+    
+        var popup_74162842846952d5e228358ccbba894e = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_d046bb5100479ea76457aad39fca4584 = $(`<div id="html_d046bb5100479ea76457aad39fca4584" style="width: 100.0%; height: 100.0%;">         <b>Cluster #61</b> (rank 30)<br>         จำนวนอุบัติเหตุ: 5<br>         เสียชีวิต: 1, บาดเจ็บสาหัส: 0, บาดเจ็บเล็กน้อย: 6<br>         severity score: 26<br>         ช่วงวันที่: 2022-01-26 ถึง 2025-09-19<br>         source: arms_json=2, arms_csv=3, exat=0         </div>`)[0];
+                popup_74162842846952d5e228358ccbba894e.setContent(html_d046bb5100479ea76457aad39fca4584);
+            
+        
+
+        circle_marker_c2f9075d71a1080ccd0d753341fff14d.bindPopup(popup_74162842846952d5e228358ccbba894e)
+        ;
+
+        
+    
+    
+            var circle_marker_b143ccaf39ce14ebca0de3c78a826bc1 = L.circleMarker(
+                [17.400663714285717, 101.55271542857143],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6.930693069306931, "stroke": true, "weight": 3}
+            ).addTo(feature_group_a7da7768eb68a025fb4b1852b0bf5bd6);
+        
+    
+        var popup_971f0e2f43b267aebb89e80ef36c8774 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_c31154617cf70c2d6156b21130ce1b0a = $(`<div id="html_c31154617cf70c2d6156b21130ce1b0a" style="width: 100.0%; height: 100.0%;">         <b>Cluster #46</b> (rank 30)<br>         จำนวนอุบัติเหตุ: 7<br>         เสียชีวิต: 1, บาดเจ็บสาหัส: 0, บาดเจ็บเล็กน้อย: 2<br>         severity score: 26<br>         ช่วงวันที่: 2023-03-24 ถึง 2025-03-11<br>         source: arms_json=0, arms_csv=7, exat=0         </div>`)[0];
+                popup_971f0e2f43b267aebb89e80ef36c8774.setContent(html_c31154617cf70c2d6156b21130ce1b0a);
+            
+        
+
+        circle_marker_b143ccaf39ce14ebca0de3c78a826bc1.bindPopup(popup_971f0e2f43b267aebb89e80ef36c8774)
+        ;
+
+        
+    
+    
+            var circle_marker_2c4c95995a660a17f685715298392fa6 = L.circleMarker(
+                [13.654139666666666, 100.5410131111111],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6.856435643564357, "stroke": true, "weight": 3}
+            ).addTo(feature_group_a7da7768eb68a025fb4b1852b0bf5bd6);
+        
+    
+        var popup_9bc37a1cf9a85e8965520131235ce186 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_541d7486cb9b06ec05e481de6d9ffc9f = $(`<div id="html_541d7486cb9b06ec05e481de6d9ffc9f" style="width: 100.0%; height: 100.0%;">         <b>Cluster #50</b> (rank 32)<br>         จำนวนอุบัติเหตุ: 9<br>         เสียชีวิต: 0, บาดเจ็บสาหัส: 2, บาดเจ็บเล็กน้อย: 1<br>         severity score: 25<br>         ช่วงวันที่: 2022-02-07 ถึง 2025-08-21<br>         source: arms_json=3, arms_csv=6, exat=0         </div>`)[0];
+                popup_9bc37a1cf9a85e8965520131235ce186.setContent(html_541d7486cb9b06ec05e481de6d9ffc9f);
+            
+        
+
+        circle_marker_2c4c95995a660a17f685715298392fa6.bindPopup(popup_9bc37a1cf9a85e8965520131235ce186)
+        ;
+
+        
+    
+    
+            var circle_marker_232213ad9d6d97b7293139e9e07feefe = L.circleMarker(
+                [15.082584, 101.520462],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6.707920792079208, "stroke": true, "weight": 3}
+            ).addTo(feature_group_a7da7768eb68a025fb4b1852b0bf5bd6);
+        
+    
+        var popup_da6c900ede65f79fdb24468171e1240f = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_3cd4d2d0e8017195a6bb747c5f01a0d8 = $(`<div id="html_3cd4d2d0e8017195a6bb747c5f01a0d8" style="width: 100.0%; height: 100.0%;">         <b>Cluster #22</b> (rank 33)<br>         จำนวนอุบัติเหตุ: 4<br>         เสียชีวิต: 1, บาดเจ็บสาหัส: 1, บาดเจ็บเล็กน้อย: 2<br>         severity score: 23<br>         ช่วงวันที่: 2022-11-08 ถึง 2024-08-06<br>         source: arms_json=0, arms_csv=4, exat=0         </div>`)[0];
+                popup_da6c900ede65f79fdb24468171e1240f.setContent(html_3cd4d2d0e8017195a6bb747c5f01a0d8);
+            
+        
+
+        circle_marker_232213ad9d6d97b7293139e9e07feefe.bindPopup(popup_da6c900ede65f79fdb24468171e1240f)
+        ;
+
+        
+    
+    
+            var circle_marker_d66d2b72858949267672981dca504ae0 = L.circleMarker(
+                [13.656091666666667, 100.5405315],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6.410891089108911, "stroke": true, "weight": 3}
+            ).addTo(feature_group_a7da7768eb68a025fb4b1852b0bf5bd6);
+        
+    
+        var popup_9c883105703d6c61fbc2110a4bae102a = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_4e3a27b25d9443e0d1f39e831873e96c = $(`<div id="html_4e3a27b25d9443e0d1f39e831873e96c" style="width: 100.0%; height: 100.0%;">         <b>Cluster #39</b> (rank 34)<br>         จำนวนอุบัติเหตุ: 6<br>         เสียชีวิต: 0, บาดเจ็บสาหัส: 1, บาดเจ็บเล็กน้อย: 4<br>         severity score: 19<br>         ช่วงวันที่: 2023-02-25 ถึง 2025-07-07<br>         source: arms_json=0, arms_csv=6, exat=0         </div>`)[0];
+                popup_9c883105703d6c61fbc2110a4bae102a.setContent(html_4e3a27b25d9443e0d1f39e831873e96c);
+            
+        
+
+        circle_marker_d66d2b72858949267672981dca504ae0.bindPopup(popup_9c883105703d6c61fbc2110a4bae102a)
+        ;
+
+        
+    
+    
+            var circle_marker_1300b0001603e3814872c7cd870ccefd = L.circleMarker(
+                [18.7417456, 98.96176840000001],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6.410891089108911, "stroke": true, "weight": 3}
+            ).addTo(feature_group_a7da7768eb68a025fb4b1852b0bf5bd6);
+        
+    
+        var popup_a4aaaa0f36ac72984d246330adca4ce0 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_226ab2c9383455afeb425437242d7031 = $(`<div id="html_226ab2c9383455afeb425437242d7031" style="width: 100.0%; height: 100.0%;">         <b>Cluster #33</b> (rank 34)<br>         จำนวนอุบัติเหตุ: 5<br>         เสียชีวิต: 0, บาดเจ็บสาหัส: 2, บาดเจ็บเล็กน้อย: 3<br>         severity score: 19<br>         ช่วงวันที่: 2022-12-30 ถึง 2024-12-01<br>         source: arms_json=0, arms_csv=5, exat=0         </div>`)[0];
+                popup_a4aaaa0f36ac72984d246330adca4ce0.setContent(html_226ab2c9383455afeb425437242d7031);
+            
+        
+
+        circle_marker_1300b0001603e3814872c7cd870ccefd.bindPopup(popup_a4aaaa0f36ac72984d246330adca4ce0)
+        ;
+
+        
+    
+    
+            var circle_marker_76798523fdb5f1d717f18d60c2edf7da = L.circleMarker(
+                [13.647210166666666, 100.53968216666665],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6.262376237623762, "stroke": true, "weight": 3}
+            ).addTo(feature_group_a7da7768eb68a025fb4b1852b0bf5bd6);
+        
+    
+        var popup_64fc11938fd9db83fac906fb8f33f982 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_ed34a4bb3ba38eade40d50f61f380d8c = $(`<div id="html_ed34a4bb3ba38eade40d50f61f380d8c" style="width: 100.0%; height: 100.0%;">         <b>Cluster #43</b> (rank 36)<br>         จำนวนอุบัติเหตุ: 6<br>         เสียชีวิต: 0, บาดเจ็บสาหัส: 1, บาดเจ็บเล็กน้อย: 2<br>         severity score: 17<br>         ช่วงวันที่: 2023-03-16 ถึง 2025-07-22<br>         source: arms_json=0, arms_csv=6, exat=0         </div>`)[0];
+                popup_64fc11938fd9db83fac906fb8f33f982.setContent(html_ed34a4bb3ba38eade40d50f61f380d8c);
+            
+        
+
+        circle_marker_76798523fdb5f1d717f18d60c2edf7da.bindPopup(popup_64fc11938fd9db83fac906fb8f33f982)
+        ;
+
+        
+    
+    
+            var circle_marker_ded3a397ef5bdb8fbc9d5055093a11ff = L.circleMarker(
+                [13.685146333333334, 100.544444],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6.262376237623762, "stroke": true, "weight": 3}
+            ).addTo(feature_group_a7da7768eb68a025fb4b1852b0bf5bd6);
+        
+    
+        var popup_5d5214a5867f4fc5052e04d140ee55f9 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_aed0c5c484d663e7831e5db4e6a9bb03 = $(`<div id="html_aed0c5c484d663e7831e5db4e6a9bb03" style="width: 100.0%; height: 100.0%;">         <b>Cluster #28</b> (rank 36)<br>         จำนวนอุบัติเหตุ: 3<br>         เสียชีวิต: 1, บาดเจ็บสาหัส: 0, บาดเจ็บเล็กน้อย: 1<br>         severity score: 17<br>         ช่วงวันที่: 2022-12-19 ถึง 2023-10-29<br>         source: arms_json=0, arms_csv=3, exat=0         </div>`)[0];
+                popup_5d5214a5867f4fc5052e04d140ee55f9.setContent(html_aed0c5c484d663e7831e5db4e6a9bb03);
+            
+        
+
+        circle_marker_ded3a397ef5bdb8fbc9d5055093a11ff.bindPopup(popup_5d5214a5867f4fc5052e04d140ee55f9)
+        ;
+
+        
+    
+    
+            var circle_marker_064baa96c7558a1c40a00bce277b83f9 = L.circleMarker(
+                [13.65281675, 100.54119800000001],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6.262376237623762, "stroke": true, "weight": 3}
+            ).addTo(feature_group_a7da7768eb68a025fb4b1852b0bf5bd6);
+        
+    
+        var popup_0a66693a20bd6a7dd62141cec5f4ac7d = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_2e5b33d6911d6625485929fed9e33059 = $(`<div id="html_2e5b33d6911d6625485929fed9e33059" style="width: 100.0%; height: 100.0%;">         <b>Cluster #16</b> (rank 36)<br>         จำนวนอุบัติเหตุ: 4<br>         เสียชีวิต: 0, บาดเจ็บสาหัส: 3, บาดเจ็บเล็กน้อย: 0<br>         severity score: 17<br>         ช่วงวันที่: 2022-01-20 ถึง 2022-10-22<br>         source: arms_json=3, arms_csv=1, exat=0         </div>`)[0];
+                popup_0a66693a20bd6a7dd62141cec5f4ac7d.setContent(html_2e5b33d6911d6625485929fed9e33059);
+            
+        
+
+        circle_marker_064baa96c7558a1c40a00bce277b83f9.bindPopup(popup_0a66693a20bd6a7dd62141cec5f4ac7d)
+        ;
+
+        
+    
+    
+            var circle_marker_d943d2d4d39d9505c2e498abee9fcc6e = L.circleMarker(
+                [13.647725166666666, 100.54141333333335],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6.03960396039604, "stroke": true, "weight": 3}
+            ).addTo(feature_group_a7da7768eb68a025fb4b1852b0bf5bd6);
+        
+    
+        var popup_07ff686302eada274d6587805a159c0b = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_998b543c5248ed67c2c40d3e79cf6491 = $(`<div id="html_998b543c5248ed67c2c40d3e79cf6491" style="width: 100.0%; height: 100.0%;">         <b>Cluster #17</b> (rank 39)<br>         จำนวนอุบัติเหตุ: 6<br>         เสียชีวิต: 0, บาดเจ็บสาหัส: 0, บาดเจ็บเล็กน้อย: 2<br>         severity score: 14<br>         ช่วงวันที่: 2022-10-24 ถึง 2024-05-10<br>         source: arms_json=0, arms_csv=6, exat=0         </div>`)[0];
+                popup_07ff686302eada274d6587805a159c0b.setContent(html_998b543c5248ed67c2c40d3e79cf6491);
+            
+        
+
+        circle_marker_d943d2d4d39d9505c2e498abee9fcc6e.bindPopup(popup_07ff686302eada274d6587805a159c0b)
+        ;
+
+        
+    
+    
+            var circle_marker_d25661068a2d160cfd1b6d4d441a8f01 = L.circleMarker(
+                [13.6616294, 100.5391966],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 5.965346534653465, "stroke": true, "weight": 3}
+            ).addTo(feature_group_a7da7768eb68a025fb4b1852b0bf5bd6);
+        
+    
+        var popup_ff189af7467e2f1330f5ff54f660a332 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_b2ddd9f4f7a5d74efda5730050f7f83b = $(`<div id="html_b2ddd9f4f7a5d74efda5730050f7f83b" style="width: 100.0%; height: 100.0%;">         <b>Cluster #49</b> (rank 40)<br>         จำนวนอุบัติเหตุ: 5<br>         เสียชีวิต: 0, บาดเจ็บสาหัส: 0, บาดเจ็บเล็กน้อย: 3<br>         severity score: 13<br>         ช่วงวันที่: 2023-07-07 ถึง 2025-07-14<br>         source: arms_json=0, arms_csv=5, exat=0         </div>`)[0];
+                popup_ff189af7467e2f1330f5ff54f660a332.setContent(html_b2ddd9f4f7a5d74efda5730050f7f83b);
+            
+        
+
+        circle_marker_d25661068a2d160cfd1b6d4d441a8f01.bindPopup(popup_ff189af7467e2f1330f5ff54f660a332)
+        ;
+
+        
+    
+    
+            var circle_marker_67aa95478cb7b7577c7349e55cf2ef2b = L.circleMarker(
+                [16.698314399999997, 98.5310712],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 5.891089108910891, "stroke": true, "weight": 3}
+            ).addTo(feature_group_a7da7768eb68a025fb4b1852b0bf5bd6);
+        
+    
+        var popup_1c4dea3d01e210117a3439166fe1b5ca = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_90bf091252df1fb78ff228a98607368f = $(`<div id="html_90bf091252df1fb78ff228a98607368f" style="width: 100.0%; height: 100.0%;">         <b>Cluster #29</b> (rank 41)<br>         จำนวนอุบัติเหตุ: 5<br>         เสียชีวิต: 0, บาดเจ็บสาหัส: 0, บาดเจ็บเล็กน้อย: 2<br>         severity score: 12<br>         ช่วงวันที่: 2022-12-07 ถึง 2024-09-02<br>         source: arms_json=0, arms_csv=5, exat=0         </div>`)[0];
+                popup_1c4dea3d01e210117a3439166fe1b5ca.setContent(html_90bf091252df1fb78ff228a98607368f);
+            
+        
+
+        circle_marker_67aa95478cb7b7577c7349e55cf2ef2b.bindPopup(popup_1c4dea3d01e210117a3439166fe1b5ca)
+        ;
+
+        
+    
+    
+            var circle_marker_1ee319fe5afd04868f8f9998a5162be2 = L.circleMarker(
+                [15.061839, 101.566819],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 5.816831683168317, "stroke": true, "weight": 3}
+            ).addTo(feature_group_a7da7768eb68a025fb4b1852b0bf5bd6);
+        
+    
+        var popup_98bbffe3c63ba30000239e7555dc4954 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_5b96a31c5aba6efa1a132e69a2d3ca4c = $(`<div id="html_5b96a31c5aba6efa1a132e69a2d3ca4c" style="width: 100.0%; height: 100.0%;">         <b>Cluster #23</b> (rank 42)<br>         จำนวนอุบัติเหตุ: 4<br>         เสียชีวิต: 0, บาดเจ็บสาหัส: 0, บาดเจ็บเล็กน้อย: 3<br>         severity score: 11<br>         ช่วงวันที่: 2022-11-14 ถึง 2024-06-09<br>         source: arms_json=0, arms_csv=4, exat=0         </div>`)[0];
+                popup_98bbffe3c63ba30000239e7555dc4954.setContent(html_5b96a31c5aba6efa1a132e69a2d3ca4c);
+            
+        
+
+        circle_marker_1ee319fe5afd04868f8f9998a5162be2.bindPopup(popup_98bbffe3c63ba30000239e7555dc4954)
+        ;
+
+        
+    
+    
+            var circle_marker_945b61285c52201c801535adc5277723 = L.circleMarker(
+                [18.8235168, 99.0092042],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 5.816831683168317, "stroke": true, "weight": 3}
+            ).addTo(feature_group_a7da7768eb68a025fb4b1852b0bf5bd6);
+        
+    
+        var popup_5d7704b72b209ff5762fbe4f96c8d026 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_228224b832230ce131978e1214d8b5cf = $(`<div id="html_228224b832230ce131978e1214d8b5cf" style="width: 100.0%; height: 100.0%;">         <b>Cluster #11</b> (rank 42)<br>         จำนวนอุบัติเหตุ: 5<br>         เสียชีวิต: 0, บาดเจ็บสาหัส: 0, บาดเจ็บเล็กน้อย: 1<br>         severity score: 11<br>         ช่วงวันที่: 2022-10-16 ถึง 2024-08-12<br>         source: arms_json=0, arms_csv=5, exat=0         </div>`)[0];
+                popup_5d7704b72b209ff5762fbe4f96c8d026.setContent(html_228224b832230ce131978e1214d8b5cf);
+            
+        
+
+        circle_marker_945b61285c52201c801535adc5277723.bindPopup(popup_5d7704b72b209ff5762fbe4f96c8d026)
+        ;
+
+        
+    
+    
+            var circle_marker_fc2b378e17aee370ac0a0a9605df8d67 = L.circleMarker(
+                [13.677580500000001, 100.539518],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 5.742574257425742, "stroke": true, "weight": 3}
+            ).addTo(feature_group_a7da7768eb68a025fb4b1852b0bf5bd6);
+        
+    
+        var popup_568128b450986f009d80c344ed9bce0e = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_5e2449be8bb0495a338df0f0110e8532 = $(`<div id="html_5e2449be8bb0495a338df0f0110e8532" style="width: 100.0%; height: 100.0%;">         <b>Cluster #14</b> (rank 44)<br>         จำนวนอุบัติเหตุ: 4<br>         เสียชีวิต: 0, บาดเจ็บสาหัส: 0, บาดเจ็บเล็กน้อย: 2<br>         severity score: 10<br>         ช่วงวันที่: 2022-10-08 ถึง 2025-03-12<br>         source: arms_json=0, arms_csv=4, exat=0         </div>`)[0];
+                popup_568128b450986f009d80c344ed9bce0e.setContent(html_5e2449be8bb0495a338df0f0110e8532);
+            
+        
+
+        circle_marker_fc2b378e17aee370ac0a0a9605df8d67.bindPopup(popup_568128b450986f009d80c344ed9bce0e)
+        ;
+
+        
+    
+    
+            var circle_marker_d759301969fbf65b9c50394ed46f912e = L.circleMarker(
+                [13.6468745, 100.54121275],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 5.742574257425742, "stroke": true, "weight": 3}
+            ).addTo(feature_group_a7da7768eb68a025fb4b1852b0bf5bd6);
+        
+    
+        var popup_fab849b2110b0590cb6e32d7e14645cc = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_1b6bd4902924d4de114469c5e2282dc8 = $(`<div id="html_1b6bd4902924d4de114469c5e2282dc8" style="width: 100.0%; height: 100.0%;">         <b>Cluster #35</b> (rank 44)<br>         จำนวนอุบัติเหตุ: 4<br>         เสียชีวิต: 0, บาดเจ็บสาหัส: 0, บาดเจ็บเล็กน้อย: 2<br>         severity score: 10<br>         ช่วงวันที่: 2023-02-03 ถึง 2024-04-13<br>         source: arms_json=0, arms_csv=4, exat=0         </div>`)[0];
+                popup_fab849b2110b0590cb6e32d7e14645cc.setContent(html_1b6bd4902924d4de114469c5e2282dc8);
+            
+        
+
+        circle_marker_d759301969fbf65b9c50394ed46f912e.bindPopup(popup_fab849b2110b0590cb6e32d7e14645cc)
+        ;
+
+        
+    
+    
+            var circle_marker_b5d403c008a6a58a85930ae65e2fa8f4 = L.circleMarker(
+                [18.742489000000003, 99.00012466666668],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 5.742574257425742, "stroke": true, "weight": 3}
+            ).addTo(feature_group_a7da7768eb68a025fb4b1852b0bf5bd6);
+        
+    
+        var popup_da9081f81a1f9f40585b3c0f15cbea0a = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_2a6c50dfd3e5cda55301f55ad3708950 = $(`<div id="html_2a6c50dfd3e5cda55301f55ad3708950" style="width: 100.0%; height: 100.0%;">         <b>Cluster #32</b> (rank 44)<br>         จำนวนอุบัติเหตุ: 3<br>         เสียชีวิต: 0, บาดเจ็บสาหัส: 1, บาดเจ็บเล็กน้อย: 1<br>         severity score: 10<br>         ช่วงวันที่: 2022-12-30 ถึง 2024-10-14<br>         source: arms_json=0, arms_csv=3, exat=0         </div>`)[0];
+                popup_da9081f81a1f9f40585b3c0f15cbea0a.setContent(html_2a6c50dfd3e5cda55301f55ad3708950);
+            
+        
+
+        circle_marker_b5d403c008a6a58a85930ae65e2fa8f4.bindPopup(popup_da9081f81a1f9f40585b3c0f15cbea0a)
+        ;
+
+        
+    
+    
+            var circle_marker_2f11edf960b9f0e5c3264ce995f98471 = L.circleMarker(
+                [13.654792333333333, 100.541562],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 5.6683168316831685, "stroke": true, "weight": 3}
+            ).addTo(feature_group_a7da7768eb68a025fb4b1852b0bf5bd6);
+        
+    
+        var popup_2419693b7b78d760f2a67a5e01f149bf = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_98c43bd88e90008276d8b71c7048e9fa = $(`<div id="html_98c43bd88e90008276d8b71c7048e9fa" style="width: 100.0%; height: 100.0%;">         <b>Cluster #60</b> (rank 47)<br>         จำนวนอุบัติเหตุ: 3<br>         เสียชีวิต: 0, บาดเจ็บสาหัส: 1, บาดเจ็บเล็กน้อย: 0<br>         severity score: 9<br>         ช่วงวันที่: 2023-04-08 ถึง 2025-08-08<br>         source: arms_json=0, arms_csv=3, exat=0         </div>`)[0];
+                popup_2419693b7b78d760f2a67a5e01f149bf.setContent(html_98c43bd88e90008276d8b71c7048e9fa);
+            
+        
+
+        circle_marker_2f11edf960b9f0e5c3264ce995f98471.bindPopup(popup_2419693b7b78d760f2a67a5e01f149bf)
+        ;
+
+        
+    
+    
+            var circle_marker_eafb06c2001386c3ee758882bc0954d6 = L.circleMarker(
+                [13.665735, 100.53818733333334],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 5.6683168316831685, "stroke": true, "weight": 3}
+            ).addTo(feature_group_a7da7768eb68a025fb4b1852b0bf5bd6);
+        
+    
+        var popup_794a01e9478883d46f6c077b18ec13d4 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_bee62b6c0145b30b5bf0a7d2f095dfaf = $(`<div id="html_bee62b6c0145b30b5bf0a7d2f095dfaf" style="width: 100.0%; height: 100.0%;">         <b>Cluster #47</b> (rank 47)<br>         จำนวนอุบัติเหตุ: 3<br>         เสียชีวิต: 0, บาดเจ็บสาหัส: 0, บาดเจ็บเล็กน้อย: 3<br>         severity score: 9<br>         ช่วงวันที่: 2023-06-05 ถึง 2023-08-11<br>         source: arms_json=0, arms_csv=3, exat=0         </div>`)[0];
+                popup_794a01e9478883d46f6c077b18ec13d4.setContent(html_bee62b6c0145b30b5bf0a7d2f095dfaf);
+            
+        
+
+        circle_marker_eafb06c2001386c3ee758882bc0954d6.bindPopup(popup_794a01e9478883d46f6c077b18ec13d4)
+        ;
+
+        
+    
+    
+            var circle_marker_ee7dc5d6855ed329941cc7aacf2f7666 = L.circleMarker(
+                [18.79854333333333, 99.03483333333334],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 5.6683168316831685, "stroke": true, "weight": 3}
+            ).addTo(feature_group_a7da7768eb68a025fb4b1852b0bf5bd6);
+        
+    
+        var popup_307c213db89c28c50695eaf86deb5af0 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_a3bef5209a67345898a2e447e359bff2 = $(`<div id="html_a3bef5209a67345898a2e447e359bff2" style="width: 100.0%; height: 100.0%;">         <b>Cluster #59</b> (rank 47)<br>         จำนวนอุบัติเหตุ: 3<br>         เสียชีวิต: 0, บาดเจ็บสาหัส: 1, บาดเจ็บเล็กน้อย: 0<br>         severity score: 9<br>         ช่วงวันที่: 2024-06-30 ถึง 2025-08-27<br>         source: arms_json=0, arms_csv=3, exat=0         </div>`)[0];
+                popup_307c213db89c28c50695eaf86deb5af0.setContent(html_a3bef5209a67345898a2e447e359bff2);
+            
+        
+
+        circle_marker_ee7dc5d6855ed329941cc7aacf2f7666.bindPopup(popup_307c213db89c28c50695eaf86deb5af0)
+        ;
+
+        
+    
+    
+            var circle_marker_d3f4f46fe8524ffdbada7522d1168807 = L.circleMarker(
+                [18.74425366666667, 99.013755],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 5.594059405940594, "stroke": true, "weight": 3}
+            ).addTo(feature_group_a7da7768eb68a025fb4b1852b0bf5bd6);
+        
+    
+        var popup_ac6127370138b718dad159202c2f1cd1 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_7a13897de124a7b14077863953d1c1cc = $(`<div id="html_7a13897de124a7b14077863953d1c1cc" style="width: 100.0%; height: 100.0%;">         <b>Cluster #58</b> (rank 50)<br>         จำนวนอุบัติเหตุ: 3<br>         เสียชีวิต: 0, บาดเจ็บสาหัส: 0, บาดเจ็บเล็กน้อย: 2<br>         severity score: 8<br>         ช่วงวันที่: 2023-04-07 ถึง 2024-11-25<br>         source: arms_json=0, arms_csv=3, exat=0         </div>`)[0];
+                popup_ac6127370138b718dad159202c2f1cd1.setContent(html_7a13897de124a7b14077863953d1c1cc);
+            
+        
+
+        circle_marker_d3f4f46fe8524ffdbada7522d1168807.bindPopup(popup_ac6127370138b718dad159202c2f1cd1)
+        ;
+
+        
+    
+    
+            var circle_marker_b680be9b7e0f123144bf21ae16a20fe3 = L.circleMarker(
+                [18.646456750000002, 98.850734],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 5.594059405940594, "stroke": true, "weight": 3}
+            ).addTo(feature_group_a7da7768eb68a025fb4b1852b0bf5bd6);
+        
+    
+        var popup_b50a327027b44c339f1a1b799788113e = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_b6f26189e0dca70267b4ed0637d92c1d = $(`<div id="html_b6f26189e0dca70267b4ed0637d92c1d" style="width: 100.0%; height: 100.0%;">         <b>Cluster #44</b> (rank 50)<br>         จำนวนอุบัติเหตุ: 4<br>         เสียชีวิต: 0, บาดเจ็บสาหัส: 0, บาดเจ็บเล็กน้อย: 0<br>         severity score: 8<br>         ช่วงวันที่: 2022-01-02 ถึง 2025-09-09<br>         source: arms_json=1, arms_csv=3, exat=0         </div>`)[0];
+                popup_b50a327027b44c339f1a1b799788113e.setContent(html_b6f26189e0dca70267b4ed0637d92c1d);
+            
+        
+
+        circle_marker_b680be9b7e0f123144bf21ae16a20fe3.bindPopup(popup_b50a327027b44c339f1a1b799788113e)
+        ;
+
+        
+    
+    
+            var circle_marker_f56aa3cb767ced107933295e991f7a35 = L.circleMarker(
+                [18.809935333333332, 99.02602133333333],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 5.51980198019802, "stroke": true, "weight": 3}
+            ).addTo(feature_group_a7da7768eb68a025fb4b1852b0bf5bd6);
+        
+    
+        var popup_66162359c25a9d169cb8070fc4b5af9d = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_088bccec955939b1dee67294e3819111 = $(`<div id="html_088bccec955939b1dee67294e3819111" style="width: 100.0%; height: 100.0%;">         <b>Cluster #40</b> (rank 52)<br>         จำนวนอุบัติเหตุ: 3<br>         เสียชีวิต: 0, บาดเจ็บสาหัส: 0, บาดเจ็บเล็กน้อย: 1<br>         severity score: 7<br>         ช่วงวันที่: 2023-02-26 ถึง 2024-03-06<br>         source: arms_json=0, arms_csv=3, exat=0         </div>`)[0];
+                popup_66162359c25a9d169cb8070fc4b5af9d.setContent(html_088bccec955939b1dee67294e3819111);
+            
+        
+
+        circle_marker_f56aa3cb767ced107933295e991f7a35.bindPopup(popup_66162359c25a9d169cb8070fc4b5af9d)
+        ;
+
+        
+    
+    
+            var circle_marker_075edd790269923abbd39fb1401b0d62 = L.circleMarker(
+                [13.685565333333331, 100.54620866666666],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 5.445544554455445, "stroke": true, "weight": 3}
+            ).addTo(feature_group_a7da7768eb68a025fb4b1852b0bf5bd6);
+        
+    
+        var popup_1e20305ce26d7f6b787e50307c8cb051 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_80f4036ef25ee1f0591ed68d58efb132 = $(`<div id="html_80f4036ef25ee1f0591ed68d58efb132" style="width: 100.0%; height: 100.0%;">         <b>Cluster #48</b> (rank 53)<br>         จำนวนอุบัติเหตุ: 3<br>         เสียชีวิต: 0, บาดเจ็บสาหัส: 0, บาดเจ็บเล็กน้อย: 0<br>         severity score: 6<br>         ช่วงวันที่: 2022-01-30 ถึง 2023-11-09<br>         source: arms_json=1, arms_csv=2, exat=0         </div>`)[0];
+                popup_1e20305ce26d7f6b787e50307c8cb051.setContent(html_80f4036ef25ee1f0591ed68d58efb132);
+            
+        
+
+        circle_marker_075edd790269923abbd39fb1401b0d62.bindPopup(popup_1e20305ce26d7f6b787e50307c8cb051)
+        ;
+
+        
+    
+    
+            feature_group_a7da7768eb68a025fb4b1852b0bf5bd6.addTo(map_b4a9f26b15329d012cd1ee349a0e559c);
+        
+    
+            var feature_group_37f1ca29538b66ab745aa54d62c6003e = L.featureGroup(
+                {
+}
+            );
+        
+    
+            var circle_marker_5ec96105ae200e5e955f16f70a1487a2 = L.circleMarker(
+                [13.799755000000001, 100.57958600000529],
+                {"bubblingMouseEvents": true, "color": "orange", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "orange", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 20.0, "stroke": true, "weight": 3}
+            ).addTo(feature_group_37f1ca29538b66ab745aa54d62c6003e);
+        
+    
+        var popup_d866493fcd88aa9bb89100bb36f7c630 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_ef1233101fcc37b9601cadb250dc9698 = $(`<div id="html_ef1233101fcc37b9601cadb250dc9698" style="width: 100.0%; height: 100.0%;">         <b>Cluster #0</b> (rank 1 - geocoded)<br>         จำนวนอุบัติเหตุ: 2634<br>         เสียชีวิต: 19, บาดเจ็บสาหัส: 0, บาดเจ็บเล็กน้อย: 1022<br>         severity score: 6480<br>         ช่วงวันที่: 2015-01-01 ถึง 2026-09-25<br>         source: arms_json=0, arms_csv=0, exat=2634         </div>`)[0];
+                popup_d866493fcd88aa9bb89100bb36f7c630.setContent(html_ef1233101fcc37b9601cadb250dc9698);
+            
+        
+
+        circle_marker_5ec96105ae200e5e955f16f70a1487a2.bindPopup(popup_d866493fcd88aa9bb89100bb36f7c630)
+        ;
+
+        
+    
+    
+            var circle_marker_ec4df1d0d5cfa870be753426e0251bfa = L.circleMarker(
+                [13.599999999999705, 100.61999999999748],
+                {"bubblingMouseEvents": true, "color": "orange", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "orange", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 15.976851851851853, "stroke": true, "weight": 3}
+            ).addTo(feature_group_37f1ca29538b66ab745aa54d62c6003e);
+        
+    
+        var popup_e97dc27ff3cb80bcc42a7ac575ced24e = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_4ae5267a49303eb1f478ae0c78a020d0 = $(`<div id="html_4ae5267a49303eb1f478ae0c78a020d0" style="width: 100.0%; height: 100.0%;">         <b>Cluster #2</b> (rank 2 - geocoded)<br>         จำนวนอุบัติเหตุ: 1778<br>         เสียชีวิต: 21, บาดเจ็บสาหัส: 0, บาดเจ็บเล็กน้อย: 976<br>         severity score: 4742<br>         ช่วงวันที่: 2015-01-09 ถึง 2026-09-23<br>         source: arms_json=0, arms_csv=0, exat=1778         </div>`)[0];
+                popup_e97dc27ff3cb80bcc42a7ac575ced24e.setContent(html_4ae5267a49303eb1f478ae0c78a020d0);
+            
+        
+
+        circle_marker_ec4df1d0d5cfa870be753426e0251bfa.bindPopup(popup_e97dc27ff3cb80bcc42a7ac575ced24e)
+        ;
+
+        
+    
+    
+            var circle_marker_26fca144e96086187524f504a7845bb2 = L.circleMarker(
+                [13.590624065576371, 100.82416927731305],
+                {"bubblingMouseEvents": true, "color": "orange", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "orange", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 14.393518518518519, "stroke": true, "weight": 3}
+            ).addTo(feature_group_37f1ca29538b66ab745aa54d62c6003e);
+        
+    
+        var popup_961c0274b2e45dbc01910db84bd63766 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_f126961bb23804a69ae9abe635e739eb = $(`<div id="html_f126961bb23804a69ae9abe635e739eb" style="width: 100.0%; height: 100.0%;">         <b>Cluster #1</b> (rank 3 - geocoded)<br>         จำนวนอุบัติเหตุ: 1453<br>         เสียชีวิต: 22, บาดเจ็บสาหัส: 0, บาดเจ็บเล็กน้อย: 932<br>         severity score: 4058<br>         ช่วงวันที่: 2015-01-02 ถึง 2026-09-18<br>         source: arms_json=0, arms_csv=0, exat=1453         </div>`)[0];
+                popup_961c0274b2e45dbc01910db84bd63766.setContent(html_f126961bb23804a69ae9abe635e739eb);
+            
+        
+
+        circle_marker_26fca144e96086187524f504a7845bb2.bindPopup(popup_961c0274b2e45dbc01910db84bd63766)
+        ;
+
+        
+    
+    
+            var circle_marker_a886386abd6dc9a54b3e1301fbab323c = L.circleMarker(
+                [13.699983806007342, 100.59125047791521],
+                {"bubblingMouseEvents": true, "color": "orange", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "orange", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 13.516203703703702, "stroke": true, "weight": 3}
+            ).addTo(feature_group_37f1ca29538b66ab745aa54d62c6003e);
+        
+    
+        var popup_09189231c7c16e240df071db580a75e0 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_b83c4a99f2778a32202f67f33138c6ef = $(`<div id="html_b83c4a99f2778a32202f67f33138c6ef" style="width: 100.0%; height: 100.0%;">         <b>Cluster #3</b> (rank 4 - geocoded)<br>         จำนวนอุบัติเหตุ: 1322<br>         เสียชีวิต: 17, บาดเจ็บสาหัส: 0, บาดเจ็บเล็กน้อย: 865<br>         severity score: 3679<br>         ช่วงวันที่: 2015-01-07 ถึง 2026-09-25<br>         source: arms_json=0, arms_csv=0, exat=1322         </div>`)[0];
+                popup_09189231c7c16e240df071db580a75e0.setContent(html_b83c4a99f2778a32202f67f33138c6ef);
+            
+        
+
+        circle_marker_a886386abd6dc9a54b3e1301fbab323c.bindPopup(popup_09189231c7c16e240df071db580a75e0)
+        ;
+
+        
+    
+    
+            var circle_marker_8d444f3fcd9345c2a63f542096f5a184 = L.circleMarker(
+                [13.794309999999816, 100.61221000000195],
+                {"bubblingMouseEvents": true, "color": "orange", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "orange", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 11.662037037037038, "stroke": true, "weight": 3}
+            ).addTo(feature_group_37f1ca29538b66ab745aa54d62c6003e);
+        
+    
+        var popup_d76dbe416e6f463d5c93f433c05bf355 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_06bea8be4ee148411d28232536f8f06e = $(`<div id="html_06bea8be4ee148411d28232536f8f06e" style="width: 100.0%; height: 100.0%;">         <b>Cluster #7</b> (rank 5 - geocoded)<br>         จำนวนอุบัติเหตุ: 1005<br>         เสียชีวิต: 20, บาดเจ็บสาหัส: 0, บาดเจ็บเล็กน้อย: 668<br>         severity score: 2878<br>         ช่วงวันที่: 2015-01-15 ถึง 2026-09-20<br>         source: arms_json=0, arms_csv=0, exat=1005         </div>`)[0];
+                popup_d76dbe416e6f463d5c93f433c05bf355.setContent(html_06bea8be4ee148411d28232536f8f06e);
+            
+        
+
+        circle_marker_8d444f3fcd9345c2a63f542096f5a184.bindPopup(popup_d76dbe416e6f463d5c93f433c05bf355)
+        ;
+
+        
+    
+    
+            var circle_marker_f7bb694e2f4b51dd2e3fa5e3021bbb4b = L.circleMarker(
+                [13.85161948119929, 100.67323515984717],
+                {"bubblingMouseEvents": true, "color": "orange", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "orange", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 9.527777777777779, "stroke": true, "weight": 3}
+            ).addTo(feature_group_37f1ca29538b66ab745aa54d62c6003e);
+        
+    
+        var popup_181ed28f040345f07ee26321c6f11db2 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_9993e75c2a3903bc2ec02500d346eeea = $(`<div id="html_9993e75c2a3903bc2ec02500d346eeea" style="width: 100.0%; height: 100.0%;">         <b>Cluster #5</b> (rank 6 - geocoded)<br>         จำนวนอุบัติเหตุ: 681<br>         เสียชีวิต: 11, บาดเจ็บสาหัส: 0, บาดเจ็บเล็กน้อย: 484<br>         severity score: 1956<br>         ช่วงวันที่: 2015-01-08 ถึง 2026-09-25<br>         source: arms_json=0, arms_csv=0, exat=681         </div>`)[0];
+                popup_181ed28f040345f07ee26321c6f11db2.setContent(html_9993e75c2a3903bc2ec02500d346eeea);
+            
+        
+
+        circle_marker_f7bb694e2f4b51dd2e3fa5e3021bbb4b.bindPopup(popup_181ed28f040345f07ee26321c6f11db2)
+        ;
+
+        
+    
+    
+            var circle_marker_da733edce4d5e28a94a0de9a08788b76 = L.circleMarker(
+                [14.02090520365445, 100.57631266776286],
+                {"bubblingMouseEvents": true, "color": "orange", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "orange", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8.631944444444445, "stroke": true, "weight": 3}
+            ).addTo(feature_group_37f1ca29538b66ab745aa54d62c6003e);
+        
+    
+        var popup_a53b694573495a4371aa6126bb4dafaa = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_d92f5fe5fb9abfaed203d6b458063c3c = $(`<div id="html_d92f5fe5fb9abfaed203d6b458063c3c" style="width: 100.0%; height: 100.0%;">         <b>Cluster #4</b> (rank 7 - geocoded)<br>         จำนวนอุบัติเหตุ: 613<br>         เสียชีวิต: 4, บาดเจ็บสาหัส: 0, บาดเจ็บเล็กน้อย: 303<br>         severity score: 1569<br>         ช่วงวันที่: 2015-01-02 ถึง 2026-09-25<br>         source: arms_json=0, arms_csv=0, exat=613         </div>`)[0];
+                popup_a53b694573495a4371aa6126bb4dafaa.setContent(html_d92f5fe5fb9abfaed203d6b458063c3c);
+            
+        
+
+        circle_marker_da733edce4d5e28a94a0de9a08788b76.bindPopup(popup_a53b694573495a4371aa6126bb4dafaa)
+        ;
+
+        
+    
+    
+            var circle_marker_c3fcedb775f1fa1181128ddb6be96006 = L.circleMarker(
+                [13.794927503334208, 100.48570995235082],
+                {"bubblingMouseEvents": true, "color": "orange", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "orange", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6.752314814814815, "stroke": true, "weight": 3}
+            ).addTo(feature_group_37f1ca29538b66ab745aa54d62c6003e);
+        
+    
+        var popup_dbf12cd715a1e8cdda3ebf3b4be42af7 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_ad1f9e9381ead44d1adb83ea6765facd = $(`<div id="html_ad1f9e9381ead44d1adb83ea6765facd" style="width: 100.0%; height: 100.0%;">         <b>Cluster #8</b> (rank 8 - geocoded)<br>         จำนวนอุบัติเหตุ: 312<br>         เสียชีวิต: 0, บาดเจ็บสาหัส: 0, บาดเจ็บเล็กน้อย: 133<br>         severity score: 757<br>         ช่วงวันที่: 2016-08-27 ถึง 2026-09-24<br>         source: arms_json=0, arms_csv=0, exat=312         </div>`)[0];
+                popup_dbf12cd715a1e8cdda3ebf3b4be42af7.setContent(html_ad1f9e9381ead44d1adb83ea6765facd);
+            
+        
+
+        circle_marker_c3fcedb775f1fa1181128ddb6be96006.bindPopup(popup_dbf12cd715a1e8cdda3ebf3b4be42af7)
+        ;
+
+        
+    
+    
+            var circle_marker_28b59b4420c0f824f0cb84b3ef2163d8 = L.circleMarker(
+                [13.669449040377092, 100.62616016385597],
+                {"bubblingMouseEvents": true, "color": "orange", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "orange", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 5.564814814814815, "stroke": true, "weight": 3}
+            ).addTo(feature_group_37f1ca29538b66ab745aa54d62c6003e);
+        
+    
+        var popup_01937908b306ef425a4aaafe81d12ae5 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_145a7673bcebbe2eceacce2d4a873422 = $(`<div id="html_145a7673bcebbe2eceacce2d4a873422" style="width: 100.0%; height: 100.0%;">         <b>Cluster #6</b> (rank 9 - geocoded)<br>         จำนวนอุบัติเหตุ: 68<br>         เสียชีวิต: 6, บาดเจ็บสาหัส: 0, บาดเจ็บเล็กน้อย: 48<br>         severity score: 244<br>         ช่วงวันที่: 2015-01-18 ถึง 2026-09-23<br>         source: arms_json=0, arms_csv=0, exat=68         </div>`)[0];
+                popup_01937908b306ef425a4aaafe81d12ae5.setContent(html_145a7673bcebbe2eceacce2d4a873422);
+            
+        
+
+        circle_marker_28b59b4420c0f824f0cb84b3ef2163d8.bindPopup(popup_01937908b306ef425a4aaafe81d12ae5)
+        ;
+
+        
+    
+    
+            feature_group_37f1ca29538b66ab745aa54d62c6003e.addTo(map_b4a9f26b15329d012cd1ee349a0e559c);
+        
+    
+            var feature_group_2db2ada52e6c8252b57aa41b60afae63 = L.featureGroup(
+                {
+}
+            );
+        
+    
+            var circle_marker_de5bd83f97ba8076e1f6dd4a2358443e = L.circleMarker(
+                [13.67016615555556, 100.53855762222221],
+                {"bubblingMouseEvents": true, "color": "black", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "black", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 12, "stroke": true, "weight": 2}
+            ).addTo(feature_group_2db2ada52e6c8252b57aa41b60afae63);
+        
+    
+        var popup_7db77ad7668162205c0523de98b2425c = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_7c9709e5e5c92278add44e4ee129bb43 = $(`<div id="html_7c9709e5e5c92278add44e4ee129bb43" style="width: 100.0%; height: 100.0%;">         <b>Cluster #24</b> (rank 1)<br>         จำนวนอุบัติเหตุ: 45<br>         เสียชีวิต: 7, บาดเจ็บสาหัส: 6, บาดเจ็บเล็กน้อย: 24<br>         severity score: 202<br>         ช่วงวันที่: 2022-02-28 ถึง 2025-09-22<br>         source: arms_json=1, arms_csv=44, exat=0         </div>`)[0];
+                popup_7db77ad7668162205c0523de98b2425c.setContent(html_7c9709e5e5c92278add44e4ee129bb43);
+            
+        
+
+        circle_marker_de5bd83f97ba8076e1f6dd4a2358443e.bindPopup(popup_7db77ad7668162205c0523de98b2425c)
+        ;
+
+        
+    
+    
+            var circle_marker_194de02e43a3ce938b4955215d6db67e = L.circleMarker(
+                [13.664349314285715, 100.53472354285715],
+                {"bubblingMouseEvents": true, "color": "black", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "black", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 12, "stroke": true, "weight": 2}
+            ).addTo(feature_group_2db2ada52e6c8252b57aa41b60afae63);
+        
+    
+        var popup_4fb19c91ca7c93c240590eb83e5f642e = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_d81ae0ac1fe537df3daabc9e158abef0 = $(`<div id="html_d81ae0ac1fe537df3daabc9e158abef0" style="width: 100.0%; height: 100.0%;">         <b>Cluster #20</b> (rank 2)<br>         จำนวนอุบัติเหตุ: 35<br>         เสียชีวิต: 3, บาดเจ็บสาหัส: 2, บาดเจ็บเล็กน้อย: 32<br>         severity score: 138<br>         ช่วงวันที่: 2022-01-21 ถึง 2025-08-19<br>         source: arms_json=2, arms_csv=33, exat=0         </div>`)[0];
+                popup_4fb19c91ca7c93c240590eb83e5f642e.setContent(html_d81ae0ac1fe537df3daabc9e158abef0);
+            
+        
+
+        circle_marker_194de02e43a3ce938b4955215d6db67e.bindPopup(popup_4fb19c91ca7c93c240590eb83e5f642e)
+        ;
+
+        
+    
+    
+            var circle_marker_4240e065e728f90c90e0cedaa58a8622 = L.circleMarker(
+                [13.663887305555555, 100.53096491666665],
+                {"bubblingMouseEvents": true, "color": "black", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "black", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 12, "stroke": true, "weight": 2}
+            ).addTo(feature_group_2db2ada52e6c8252b57aa41b60afae63);
+        
+    
+        var popup_d998ec537d3407935f03776ea8f8a741 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_201a500f44ddb7a8fa6dba03d08acc07 = $(`<div id="html_201a500f44ddb7a8fa6dba03d08acc07" style="width: 100.0%; height: 100.0%;">         <b>Cluster #51</b> (rank 3)<br>         จำนวนอุบัติเหตุ: 36<br>         เสียชีวิต: 2, บาดเจ็บสาหัส: 1, บาดเจ็บเล็กน้อย: 29<br>         severity score: 124<br>         ช่วงวันที่: 2022-10-16 ถึง 2025-09-23<br>         source: arms_json=0, arms_csv=36, exat=0         </div>`)[0];
+                popup_d998ec537d3407935f03776ea8f8a741.setContent(html_201a500f44ddb7a8fa6dba03d08acc07);
+            
+        
+
+        circle_marker_4240e065e728f90c90e0cedaa58a8622.bindPopup(popup_d998ec537d3407935f03776ea8f8a741)
+        ;
+
+        
+    
+    
+            var circle_marker_3f710cf9ef238ace8fab0c262d6aa892 = L.circleMarker(
+                [13.66421409375, 100.52649468749999],
+                {"bubblingMouseEvents": true, "color": "black", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "black", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 12, "stroke": true, "weight": 2}
+            ).addTo(feature_group_2db2ada52e6c8252b57aa41b60afae63);
+        
+    
+        var popup_5558d6f4f86cd2c5db4b9f41651423e0 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_ac23230fa3f8060d2153c2e886792966 = $(`<div id="html_ac23230fa3f8060d2153c2e886792966" style="width: 100.0%; height: 100.0%;">         <b>Cluster #19</b> (rank 4)<br>         จำนวนอุบัติเหตุ: 32<br>         เสียชีวิต: 0, บาดเจ็บสาหัส: 1, บาดเจ็บเล็กน้อย: 22<br>         severity score: 89<br>         ช่วงวันที่: 2022-10-28 ถึง 2025-09-03<br>         source: arms_json=0, arms_csv=32, exat=0         </div>`)[0];
+                popup_5558d6f4f86cd2c5db4b9f41651423e0.setContent(html_ac23230fa3f8060d2153c2e886792966);
+            
+        
+
+        circle_marker_3f710cf9ef238ace8fab0c262d6aa892.bindPopup(popup_5558d6f4f86cd2c5db4b9f41651423e0)
+        ;
+
+        
+    
+    
+            var circle_marker_54d920ce032871d56c57bbded850850d = L.circleMarker(
+                [13.648619190476195, 100.54025476190475],
+                {"bubblingMouseEvents": true, "color": "black", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "black", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 12, "stroke": true, "weight": 2}
+            ).addTo(feature_group_2db2ada52e6c8252b57aa41b60afae63);
+        
+    
+        var popup_f46a6695368f5b8cb596d49b94315a6d = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_92f19ffae57f243623b8ee1ba29173ee = $(`<div id="html_92f19ffae57f243623b8ee1ba29173ee" style="width: 100.0%; height: 100.0%;">         <b>Cluster #27</b> (rank 5)<br>         จำนวนอุบัติเหตุ: 21<br>         เสียชีวิต: 0, บาดเจ็บสาหัส: 1, บาดเจ็บเล็กน้อย: 22<br>         severity score: 67<br>         ช่วงวันที่: 2022-12-15 ถึง 2025-02-03<br>         source: arms_json=0, arms_csv=21, exat=0         </div>`)[0];
+                popup_f46a6695368f5b8cb596d49b94315a6d.setContent(html_92f19ffae57f243623b8ee1ba29173ee);
+            
+        
+
+        circle_marker_54d920ce032871d56c57bbded850850d.bindPopup(popup_f46a6695368f5b8cb596d49b94315a6d)
+        ;
+
+        
+    
+    
+            var circle_marker_ad1e7e7c2521b417bba592f467ba86fc = L.circleMarker(
+                [13.651343222222224, 100.54121822222224],
+                {"bubblingMouseEvents": true, "color": "black", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "black", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 12, "stroke": true, "weight": 2}
+            ).addTo(feature_group_2db2ada52e6c8252b57aa41b60afae63);
+        
+    
+        var popup_93bb0ebc722aa648173ef2f004916be4 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_6fa6536685752b48f014fdb3c39410ce = $(`<div id="html_6fa6536685752b48f014fdb3c39410ce" style="width: 100.0%; height: 100.0%;">         <b>Cluster #21</b> (rank 6)<br>         จำนวนอุบัติเหตุ: 18<br>         เสียชีวิต: 2, บาดเจ็บสาหัส: 0, บาดเจ็บเล็กน้อย: 10<br>         severity score: 66<br>         ช่วงวันที่: 2022-01-03 ถึง 2025-08-26<br>         source: arms_json=3, arms_csv=15, exat=0         </div>`)[0];
+                popup_93bb0ebc722aa648173ef2f004916be4.setContent(html_6fa6536685752b48f014fdb3c39410ce);
+            
+        
+
+        circle_marker_ad1e7e7c2521b417bba592f467ba86fc.bindPopup(popup_93bb0ebc722aa648173ef2f004916be4)
+        ;
+
+        
+    
+    
+            var circle_marker_d8b99de1506b2a10536716b41b3d2bba = L.circleMarker(
+                [13.659568599999998, 100.53955806666664],
+                {"bubblingMouseEvents": true, "color": "black", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "black", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 12, "stroke": true, "weight": 2}
+            ).addTo(feature_group_2db2ada52e6c8252b57aa41b60afae63);
+        
+    
+        var popup_43e97821498b88a8a6e5df5d597c8c5b = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_938244df1c7c2816972b83cb73b87ade = $(`<div id="html_938244df1c7c2816972b83cb73b87ade" style="width: 100.0%; height: 100.0%;">         <b>Cluster #30</b> (rank 6)<br>         จำนวนอุบัติเหตุ: 15<br>         เสียชีวิต: 2, บาดเจ็บสาหัส: 2, บาดเจ็บเล็กน้อย: 10<br>         severity score: 66<br>         ช่วงวันที่: 2022-01-30 ถึง 2025-07-16<br>         source: arms_json=2, arms_csv=13, exat=0         </div>`)[0];
+                popup_43e97821498b88a8a6e5df5d597c8c5b.setContent(html_938244df1c7c2816972b83cb73b87ade);
+            
+        
+
+        circle_marker_d8b99de1506b2a10536716b41b3d2bba.bindPopup(popup_43e97821498b88a8a6e5df5d597c8c5b)
+        ;
+
+        
+    
+    
+            var circle_marker_45ecaac5cb4a1108a77c969699f44c75 = L.circleMarker(
+                [19.483245153846152, 97.961201],
+                {"bubblingMouseEvents": true, "color": "black", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "black", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 12, "stroke": true, "weight": 2}
+            ).addTo(feature_group_2db2ada52e6c8252b57aa41b60afae63);
+        
+    
+        var popup_924098ff82d00c7b0c8fe28fa8fc9b3b = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_7a1627057efc45fad19ea7a09b95ccda = $(`<div id="html_7a1627057efc45fad19ea7a09b95ccda" style="width: 100.0%; height: 100.0%;">         <b>Cluster #12</b> (rank 8)<br>         จำนวนอุบัติเหตุ: 13<br>         เสียชีวิต: 0, บาดเจ็บสาหัส: 3, บาดเจ็บเล็กน้อย: 30<br>         severity score: 65<br>         ช่วงวันที่: 2021-12-31 ถึง 2025-08-11<br>         source: arms_json=1, arms_csv=12, exat=0         </div>`)[0];
+                popup_924098ff82d00c7b0c8fe28fa8fc9b3b.setContent(html_7a1627057efc45fad19ea7a09b95ccda);
+            
+        
+
+        circle_marker_45ecaac5cb4a1108a77c969699f44c75.bindPopup(popup_924098ff82d00c7b0c8fe28fa8fc9b3b)
+        ;
+
+        
+    
+    
+            var circle_marker_9a00f386398e8b1d3197d3508a325cee = L.circleMarker(
+                [13.662756611111114, 100.53889933333332],
+                {"bubblingMouseEvents": true, "color": "black", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "black", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 12, "stroke": true, "weight": 2}
+            ).addTo(feature_group_2db2ada52e6c8252b57aa41b60afae63);
+        
+    
+        var popup_ba992e4ae2fa37b78625d2d01a34c13e = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_4962a75d8b3da80a20f8bde61f202b27 = $(`<div id="html_4962a75d8b3da80a20f8bde61f202b27" style="width: 100.0%; height: 100.0%;">         <b>Cluster #26</b> (rank 9)<br>         จำนวนอุบัติเหตุ: 18<br>         เสียชีวิต: 1, บาดเจ็บสาหัส: 1, บาดเจ็บเล็กน้อย: 10<br>         severity score: 59<br>         ช่วงวันที่: 2022-12-10 ถึง 2025-03-09<br>         source: arms_json=0, arms_csv=18, exat=0         </div>`)[0];
+                popup_ba992e4ae2fa37b78625d2d01a34c13e.setContent(html_4962a75d8b3da80a20f8bde61f202b27);
+            
+        
+
+        circle_marker_9a00f386398e8b1d3197d3508a325cee.bindPopup(popup_ba992e4ae2fa37b78625d2d01a34c13e)
+        ;
+
+        
+    
+    
+            var circle_marker_fb67c2ddc7978806acce161dcdb6692d = L.circleMarker(
+                [13.68410414285714, 100.54264971428572],
+                {"bubblingMouseEvents": true, "color": "black", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "black", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 12, "stroke": true, "weight": 2}
+            ).addTo(feature_group_2db2ada52e6c8252b57aa41b60afae63);
+        
+    
+        var popup_9728674413c3b77663e69301fbd43c66 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_c4db266af7ddba18424a0a7318a0763b = $(`<div id="html_c4db266af7ddba18424a0a7318a0763b" style="width: 100.0%; height: 100.0%;">         <b>Cluster #57</b> (rank 10)<br>         จำนวนอุบัติเหตุ: 7<br>         เสียชีวิต: 3, บาดเจ็บสาหัส: 1, บาดเจ็บเล็กน้อย: 4<br>         severity score: 51<br>         ช่วงวันที่: 2023-11-28 ถึง 2025-09-12<br>         source: arms_json=0, arms_csv=7, exat=0         </div>`)[0];
+                popup_9728674413c3b77663e69301fbd43c66.setContent(html_c4db266af7ddba18424a0a7318a0763b);
+            
+        
+
+        circle_marker_fb67c2ddc7978806acce161dcdb6692d.bindPopup(popup_9728674413c3b77663e69301fbd43c66)
+        ;
+
+        
+    
+    
+            var circle_marker_430900ad8554a36e07c61da711da0bb6 = L.circleMarker(
+                [13.799755000000001, 100.57958600000529],
+                {"bubblingMouseEvents": true, "color": "black", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "black", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 12, "stroke": true, "weight": 2}
+            ).addTo(feature_group_2db2ada52e6c8252b57aa41b60afae63);
+        
+    
+        var popup_9e6d90c7fef869546ee29060b5a88313 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_dcad6032cde56a160988cfdcc4dbad5f = $(`<div id="html_dcad6032cde56a160988cfdcc4dbad5f" style="width: 100.0%; height: 100.0%;">         <b>Cluster #0</b> (rank 1 - geocoded)<br>         จำนวนอุบัติเหตุ: 2634<br>         เสียชีวิต: 19, บาดเจ็บสาหัส: 0, บาดเจ็บเล็กน้อย: 1022<br>         severity score: 6480<br>         ช่วงวันที่: 2015-01-01 ถึง 2026-09-25<br>         source: arms_json=0, arms_csv=0, exat=2634         </div>`)[0];
+                popup_9e6d90c7fef869546ee29060b5a88313.setContent(html_dcad6032cde56a160988cfdcc4dbad5f);
+            
+        
+
+        circle_marker_430900ad8554a36e07c61da711da0bb6.bindPopup(popup_9e6d90c7fef869546ee29060b5a88313)
+        ;
+
+        
+    
+    
+            var circle_marker_025d46cbc01151cb1a507d4a90979363 = L.circleMarker(
+                [13.599999999999705, 100.61999999999748],
+                {"bubblingMouseEvents": true, "color": "black", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "black", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 12, "stroke": true, "weight": 2}
+            ).addTo(feature_group_2db2ada52e6c8252b57aa41b60afae63);
+        
+    
+        var popup_a89a54c957ebc1feec6b667c0320215f = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_f56a59dcd34dba3defbf90f4de989ae9 = $(`<div id="html_f56a59dcd34dba3defbf90f4de989ae9" style="width: 100.0%; height: 100.0%;">         <b>Cluster #2</b> (rank 2 - geocoded)<br>         จำนวนอุบัติเหตุ: 1778<br>         เสียชีวิต: 21, บาดเจ็บสาหัส: 0, บาดเจ็บเล็กน้อย: 976<br>         severity score: 4742<br>         ช่วงวันที่: 2015-01-09 ถึง 2026-09-23<br>         source: arms_json=0, arms_csv=0, exat=1778         </div>`)[0];
+                popup_a89a54c957ebc1feec6b667c0320215f.setContent(html_f56a59dcd34dba3defbf90f4de989ae9);
+            
+        
+
+        circle_marker_025d46cbc01151cb1a507d4a90979363.bindPopup(popup_a89a54c957ebc1feec6b667c0320215f)
+        ;
+
+        
+    
+    
+            var circle_marker_1476db81afbabd44f00410da95e3c8f4 = L.circleMarker(
+                [13.590624065576371, 100.82416927731305],
+                {"bubblingMouseEvents": true, "color": "black", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "black", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 12, "stroke": true, "weight": 2}
+            ).addTo(feature_group_2db2ada52e6c8252b57aa41b60afae63);
+        
+    
+        var popup_ff101e150231b8bb0cdb35e00fa922fc = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_66bebe472bcdf3653f33220b2e95883e = $(`<div id="html_66bebe472bcdf3653f33220b2e95883e" style="width: 100.0%; height: 100.0%;">         <b>Cluster #1</b> (rank 3 - geocoded)<br>         จำนวนอุบัติเหตุ: 1453<br>         เสียชีวิต: 22, บาดเจ็บสาหัส: 0, บาดเจ็บเล็กน้อย: 932<br>         severity score: 4058<br>         ช่วงวันที่: 2015-01-02 ถึง 2026-09-18<br>         source: arms_json=0, arms_csv=0, exat=1453         </div>`)[0];
+                popup_ff101e150231b8bb0cdb35e00fa922fc.setContent(html_66bebe472bcdf3653f33220b2e95883e);
+            
+        
+
+        circle_marker_1476db81afbabd44f00410da95e3c8f4.bindPopup(popup_ff101e150231b8bb0cdb35e00fa922fc)
+        ;
+
+        
+    
+    
+            var circle_marker_d56acbd39c3bda8fd3e9eedbf10ef10d = L.circleMarker(
+                [13.699983806007342, 100.59125047791521],
+                {"bubblingMouseEvents": true, "color": "black", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "black", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 12, "stroke": true, "weight": 2}
+            ).addTo(feature_group_2db2ada52e6c8252b57aa41b60afae63);
+        
+    
+        var popup_605c987c6bfe151c8c715bc3eaf1d561 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_efdaf8dabe92ab147877a3d9db2bc2cf = $(`<div id="html_efdaf8dabe92ab147877a3d9db2bc2cf" style="width: 100.0%; height: 100.0%;">         <b>Cluster #3</b> (rank 4 - geocoded)<br>         จำนวนอุบัติเหตุ: 1322<br>         เสียชีวิต: 17, บาดเจ็บสาหัส: 0, บาดเจ็บเล็กน้อย: 865<br>         severity score: 3679<br>         ช่วงวันที่: 2015-01-07 ถึง 2026-09-25<br>         source: arms_json=0, arms_csv=0, exat=1322         </div>`)[0];
+                popup_605c987c6bfe151c8c715bc3eaf1d561.setContent(html_efdaf8dabe92ab147877a3d9db2bc2cf);
+            
+        
+
+        circle_marker_d56acbd39c3bda8fd3e9eedbf10ef10d.bindPopup(popup_605c987c6bfe151c8c715bc3eaf1d561)
+        ;
+
+        
+    
+    
+            var circle_marker_02369a14cc71761cb59a9bb18f9013b5 = L.circleMarker(
+                [13.794309999999816, 100.61221000000195],
+                {"bubblingMouseEvents": true, "color": "black", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "black", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 12, "stroke": true, "weight": 2}
+            ).addTo(feature_group_2db2ada52e6c8252b57aa41b60afae63);
+        
+    
+        var popup_a56351af2a93af783794f4d19ab77b49 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_e002a357db6bbfd81b23f6fe9c5da8be = $(`<div id="html_e002a357db6bbfd81b23f6fe9c5da8be" style="width: 100.0%; height: 100.0%;">         <b>Cluster #7</b> (rank 5 - geocoded)<br>         จำนวนอุบัติเหตุ: 1005<br>         เสียชีวิต: 20, บาดเจ็บสาหัส: 0, บาดเจ็บเล็กน้อย: 668<br>         severity score: 2878<br>         ช่วงวันที่: 2015-01-15 ถึง 2026-09-20<br>         source: arms_json=0, arms_csv=0, exat=1005         </div>`)[0];
+                popup_a56351af2a93af783794f4d19ab77b49.setContent(html_e002a357db6bbfd81b23f6fe9c5da8be);
+            
+        
+
+        circle_marker_02369a14cc71761cb59a9bb18f9013b5.bindPopup(popup_a56351af2a93af783794f4d19ab77b49)
+        ;
+
+        
+    
+    
+            var circle_marker_b8ba87f6609a98d2c6829eadd0b52ad5 = L.circleMarker(
+                [13.85161948119929, 100.67323515984717],
+                {"bubblingMouseEvents": true, "color": "black", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "black", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 12, "stroke": true, "weight": 2}
+            ).addTo(feature_group_2db2ada52e6c8252b57aa41b60afae63);
+        
+    
+        var popup_d744fd50b74303c9f7e0db9f5d31780e = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_2b1fedbb201afa33fcb5c5e5d1c3721f = $(`<div id="html_2b1fedbb201afa33fcb5c5e5d1c3721f" style="width: 100.0%; height: 100.0%;">         <b>Cluster #5</b> (rank 6 - geocoded)<br>         จำนวนอุบัติเหตุ: 681<br>         เสียชีวิต: 11, บาดเจ็บสาหัส: 0, บาดเจ็บเล็กน้อย: 484<br>         severity score: 1956<br>         ช่วงวันที่: 2015-01-08 ถึง 2026-09-25<br>         source: arms_json=0, arms_csv=0, exat=681         </div>`)[0];
+                popup_d744fd50b74303c9f7e0db9f5d31780e.setContent(html_2b1fedbb201afa33fcb5c5e5d1c3721f);
+            
+        
+
+        circle_marker_b8ba87f6609a98d2c6829eadd0b52ad5.bindPopup(popup_d744fd50b74303c9f7e0db9f5d31780e)
+        ;
+
+        
+    
+    
+            var circle_marker_eb4ff1458a5699caa3badd8f621c9389 = L.circleMarker(
+                [14.02090520365445, 100.57631266776286],
+                {"bubblingMouseEvents": true, "color": "black", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "black", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 12, "stroke": true, "weight": 2}
+            ).addTo(feature_group_2db2ada52e6c8252b57aa41b60afae63);
+        
+    
+        var popup_36ba65dc83d5e171420e33630a38b879 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_a65dc01c6072073c62808373dd788104 = $(`<div id="html_a65dc01c6072073c62808373dd788104" style="width: 100.0%; height: 100.0%;">         <b>Cluster #4</b> (rank 7 - geocoded)<br>         จำนวนอุบัติเหตุ: 613<br>         เสียชีวิต: 4, บาดเจ็บสาหัส: 0, บาดเจ็บเล็กน้อย: 303<br>         severity score: 1569<br>         ช่วงวันที่: 2015-01-02 ถึง 2026-09-25<br>         source: arms_json=0, arms_csv=0, exat=613         </div>`)[0];
+                popup_36ba65dc83d5e171420e33630a38b879.setContent(html_a65dc01c6072073c62808373dd788104);
+            
+        
+
+        circle_marker_eb4ff1458a5699caa3badd8f621c9389.bindPopup(popup_36ba65dc83d5e171420e33630a38b879)
+        ;
+
+        
+    
+    
+            var circle_marker_db739a92fc338fb64089ae56a5d67f9f = L.circleMarker(
+                [13.794927503334208, 100.48570995235082],
+                {"bubblingMouseEvents": true, "color": "black", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "black", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 12, "stroke": true, "weight": 2}
+            ).addTo(feature_group_2db2ada52e6c8252b57aa41b60afae63);
+        
+    
+        var popup_8cddad99d5f261afa106e763387b45e8 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_875b11172f02154c147292e40dea567a = $(`<div id="html_875b11172f02154c147292e40dea567a" style="width: 100.0%; height: 100.0%;">         <b>Cluster #8</b> (rank 8 - geocoded)<br>         จำนวนอุบัติเหตุ: 312<br>         เสียชีวิต: 0, บาดเจ็บสาหัส: 0, บาดเจ็บเล็กน้อย: 133<br>         severity score: 757<br>         ช่วงวันที่: 2016-08-27 ถึง 2026-09-24<br>         source: arms_json=0, arms_csv=0, exat=312         </div>`)[0];
+                popup_8cddad99d5f261afa106e763387b45e8.setContent(html_875b11172f02154c147292e40dea567a);
+            
+        
+
+        circle_marker_db739a92fc338fb64089ae56a5d67f9f.bindPopup(popup_8cddad99d5f261afa106e763387b45e8)
+        ;
+
+        
+    
+    
+            var circle_marker_ed8ac7a9c9b77e526e84370fc8bed9b3 = L.circleMarker(
+                [13.669449040377092, 100.62616016385597],
+                {"bubblingMouseEvents": true, "color": "black", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "black", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 12, "stroke": true, "weight": 2}
+            ).addTo(feature_group_2db2ada52e6c8252b57aa41b60afae63);
+        
+    
+        var popup_0091c01764189069cbd01a9f88f7185c = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_08bbf1842ef39774433d938601508376 = $(`<div id="html_08bbf1842ef39774433d938601508376" style="width: 100.0%; height: 100.0%;">         <b>Cluster #6</b> (rank 9 - geocoded)<br>         จำนวนอุบัติเหตุ: 68<br>         เสียชีวิต: 6, บาดเจ็บสาหัส: 0, บาดเจ็บเล็กน้อย: 48<br>         severity score: 244<br>         ช่วงวันที่: 2015-01-18 ถึง 2026-09-23<br>         source: arms_json=0, arms_csv=0, exat=68         </div>`)[0];
+                popup_0091c01764189069cbd01a9f88f7185c.setContent(html_08bbf1842ef39774433d938601508376);
+            
+        
+
+        circle_marker_ed8ac7a9c9b77e526e84370fc8bed9b3.bindPopup(popup_0091c01764189069cbd01a9f88f7185c)
+        ;
+
+        
+    
+    
+            L.control.fullscreen(
+                {
+  "position": "topleft",
+  "title": "Full Screen",
+  "titleCancel": "Exit Full Screen",
+  "forceSeparateButton": false,
+}
+            ).addTo(map_b4a9f26b15329d012cd1ee349a0e559c);
+        
+    
+            var layer_control_2590d264674d7affed6ed4b12392fee4_layers = {
+                base_layers : {
+                    "Esri World Street Map" : tile_layer_ff7d7dbbfb1905c53f26810f9825f62d,
+                },
+                overlays :  {
+                    "Heatmap" : heat_map_975092ab13b7f31a47c5fb7418f46da5,
+                    "\u0e08\u0e38\u0e14\u0e40\u0e2a\u0e35\u0e48\u0e22\u0e07 ARMS (\u0e1e\u0e34\u0e01\u0e31\u0e14\u0e08\u0e23\u0e34\u0e07)" : feature_group_a7da7768eb68a025fb4b1852b0bf5bd6,
+                    "\u0e08\u0e38\u0e14\u0e40\u0e2a\u0e35\u0e48\u0e22\u0e07 EXAT (\u0e1e\u0e34\u0e01\u0e31\u0e14\u0e1b\u0e23\u0e30\u0e21\u0e32\u0e13)" : feature_group_37f1ca29538b66ab745aa54d62c6003e,
+                    "Top 10 \u0e15\u0e48\u0e2d\u0e01\u0e25\u0e38\u0e48\u0e21 (\u0e02\u0e2d\u0e1a\u0e14\u0e33)" : feature_group_2db2ada52e6c8252b57aa41b60afae63,
+                },
+            };
+            let layer_control_2590d264674d7affed6ed4b12392fee4 = L.control.layers(
+                layer_control_2590d264674d7affed6ed4b12392fee4_layers.base_layers,
+                layer_control_2590d264674d7affed6ed4b12392fee4_layers.overlays,
+                {
+  "position": "topright",
+  "collapsed": false,
+  "autoZIndex": true,
+}
+            ).addTo(map_b4a9f26b15329d012cd1ee349a0e559c);
+
+        
+</script>
+</html>
