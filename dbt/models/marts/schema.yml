@@ -10,8 +10,13 @@ models:
     columns:
       - name: cluster_id
         description: มาจาก int_accident_clusters (Issue 08) — primary key ของแถวนี้
+        tests:
+          - unique
+          - not_null
       - name: n_accidents
         description: จำนวนอุบัติเหตุทั้งหมดใน cluster นี้
+        tests:
+          - not_null
       - name: centroid_lat
         description: ละติจูดเฉลี่ยของทุกอุบัติเหตุใน cluster ใช้ปักหมุดบนแผนที่ (Issue 11)
       - name: centroid_lng
@@ -20,6 +25,8 @@ models:
         description: >
           (10×dead_total) + (3×injured_severe_total) + (1×injured_light_total) + (2×n_accidents)
           ยิ่งสูงยิ่งอันตราย เหตุผลของน้ำหนักแต่ละตัวดูที่ docs/severity_score_notes.md
+        tests:
+          - not_null
       - name: is_geocoded
         description: >
           true ถ้ามีอุบัติเหตุอย่างน้อย 1 ครั้งในกลุ่มมาจาก EXAT (พิกัดประมาณทั้งทางด่วน)
