@@ -31,7 +31,10 @@ x-airflow-common:
 
 services:
   postgres:
-    image: postgres:16
+    # Issue 08: เปลี่ยนจาก postgres:16 ธรรมดา เป็น image ที่มี PostGIS ติดตั้งมาให้แล้ว
+    # (ต้องใช้ ST_ClusterDBSCAN ทำ clustering แบบ SQL ล้วน) — เป็น image ทางการเดียวกันกับ
+    # postgres:16 เป๊ะ แค่เพิ่ม extension มาให้ ไม่กระทบข้อมูลเดิมใน volume postgres_data เลย
+    image: postgis/postgis:16-3.4
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
